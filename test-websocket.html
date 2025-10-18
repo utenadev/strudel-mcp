@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strudel WebSocket Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .connected { background: #2d5a2d; }
+        .disconnected { background: #5a2d2d; }
+        .reconnecting { background: #5a5a2d; }
+        textarea, input {
+            width: 100%;
+            background: #2a2a2a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        button {
+            background: #00ff00;
+            color: #1a1a1a;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #00cc00;
+        }
+        .message {
+            background: #2a2a2a;
+            padding: 5px;
+            margin: 2px 0;
+            border-left: 3px solid #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Strudel MCP WebSocket テスト</h1>
+        
+        <div id="status" class="status disconnected">WebSocket: 切断されています</div>
+        
+        <div>
+            <h3>Strudel コード:</h3>
+            <textarea id="strudelCode" rows="12" placeholder="ここにStrudelコードを入力...">// 基本テスト
+s("bd hh sd oh")
+
+// 簡単なテスト
+s("bd hh sd oh").rev()
+
+// .stack() - パターンを重ねる
+$: s("bd sd").stack()
+
+// .jux() - 交互パターン
+$: s("bd hh").jux()
+
+// 複合操作
+$: s("[bd <hh sd>]*2").fast(2).rev()
+
+// 複数行 + 高度な構文
+$: s("bd sd").rev()
+$: s("hh oh").jux().fast(2)</textarea>
+            <br>
+            <button onclick="initAudioAndTest()">Audio初期化 & テスト</button>
+            <button onclick="testSimpleSound()">シンプル音声テスト</button>
+            <button onclick="executeCode()">実行</button>
+            <button onclick="getCurrentPattern()">現在のパターンを取得</button>
+            <button onclick="stopMusic()">音楽停止</button>
+            <button onclick="clearMessages()">メッセージをクリア</button>
+        </div>
+        
+        <div>
+            <h3>メッセージログ:</h3>
+            <div id="messages" style="height: 300px; overflow-y: auto; border: 1px solid #00ff00; padding: 10px;"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let reconnectAttempts = 0;
+        let maxReconnectAttempts = 5;
+        let audioContext = null;
+        let activePattern = null;
+        let soundFuncs = null;
+
+        // Simple Web Audio API based implementation for basic Strudel patterns
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Initialize sound functions once
+                if (!soundFuncs) {
+                    const ctx = audioContext;
+                    soundFuncs = {
+                        'bd': () => {
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.frequency.setValueAtTime(60, ctx.currentTime);
+                            osc.type = 'sine';
+                            gain.gain.setValueAtTime(1, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start(ctx.currentTime);
+                            osc.stop(ctx.currentTime + 0.1);
+                        },
+                        'hh': () => {
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.frequency.setValueAtTime(800, ctx.currentTime);
+                            osc.type = 'square';
+                            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start(ctx.currentTime);
+                            osc.stop(ctx.currentTime + 0.05);
+                        },
+                        'oh': () => {
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.frequency.setValueAtTime(400, ctx.currentTime);
+                            osc.type = 'sawtooth';
+                            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                            osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.1);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start(ctx.currentTime);
+                            osc.stop(ctx.currentTime + 0.2);
+                        },
+                        'sd': () => {
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            const noise = ctx.createBufferSource();
+                            const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.1, ctx.sampleRate);
+                            const data = noiseBuffer.getChannelData(0);
+                            for (let i = 0; i < data.length; i++) {
+                                data[i] = Math.random() * 2 - 1;
+                            }
+                            noise.buffer = noiseBuffer;
+                            
+                            osc.frequency.setValueAtTime(200, ctx.currentTime);
+                            osc.type = 'triangle';
+                            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                            
+                            osc.connect(gain);
+                            noise.connect(gain);
+                            gain.connect(ctx.destination);
+                            
+                            osc.start(ctx.currentTime);
+                            noise.start(ctx.currentTime);
+                            osc.stop(ctx.currentTime + 0.1);
+                            noise.stop(ctx.currentTime + 0.1);
+                        }
+                    };
+                }
+            }
+            return audioContext;
+        }
+
+        function playStrudelPattern(code) {
+            const ctx = initAudio();
+            
+            // Stop any currently playing pattern
+            if (activePattern) {
+                activePattern.stop();
+            }
+
+            try {
+                // Very basic pattern interpretation for demonstration
+                addMessage(`🎵 Web Audio APIでパターンを実行:\n${code}`, 'music');
+                
+                // Support both s() and sound() functions - handle multiline code
+                let patterns = [];
+                
+                console.log('Original code for parsing:', code);
+                
+                // Find all s() or sound() patterns in multiline code
+                const allMatches = code.matchAll(/(?:s\(|sound\()\s*([^)]+)\s*\)/g);
+                
+                for (const match of allMatches) {
+                    let pattern = match[1];
+                    // Clean up the pattern (remove quotes and extra whitespace)
+                    pattern = pattern.replace(/['"]/g, '').trim();
+                    if (pattern) {
+                        patterns.push(pattern);
+                        console.log('Found pattern:', pattern);
+                    }
+                }
+                
+                console.log('Total patterns found:', patterns.length);
+                console.log('Patterns array:', patterns);
+                
+                if (patterns.length > 0) {
+                    if (patterns.length === 1) {
+                        // Single pattern - use existing logic
+                        addMessage(`単一パターンを検出: ${patterns[0]}`, 'info');
+                        playSimpleBeat(patterns[0], ctx, code);
+                    } else {
+                        // Multiple patterns - play them in sequence or together
+                        addMessage(`複数パターンを検出: ${patterns.length}個`, 'info');
+                        playMultiplePatterns(patterns, ctx, code);
+                    }
+                } else {
+                    addMessage('⚠️ 基本的なパターンを検出できませんでした', 'warning');
+                    addMessage(`デバッグ - 元のコード: ${code.substring(0, 200)}...`, 'error');
+                    
+                    // Try fallback parsing for simpler patterns
+                    const simpleMatch = code.match(/(?:s\(|sound\()([^)]+)\)/);
+                    if (simpleMatch) {
+                        const fallbackPattern = simpleMatch[1].replace(/['"]/g, '').trim();
+                        addMessage(`フォールバックパターンを試します: ${fallbackPattern}`, 'warning');
+                        playSimpleBeat(fallbackPattern, ctx, code);
+                    }
+                }
+            } catch (error) {
+                addMessage(`音楽実行エラー: ${error.message}`, 'error');
+            }
+        }
+
+        function playSimpleBeat(pattern, ctx, originalCode, setActive = true) {
+            // Parse advanced Strudel syntax
+            let bpm = 120;
+            let patternOps = [];
+            
+            // Extract operations from original code: .fast(n), .slow(n), .rev(), .stack(), .jux()
+            if (originalCode) {
+                // Speed modifiers
+                const fastMatch = originalCode.match(/\.fast\((\d+)\)/);
+                if (fastMatch) {
+                    bpm *= parseInt(fastMatch[1]);
+                    patternOps.push({ type: 'fast', value: parseInt(fastMatch[1]) });
+                }
+                
+                const slowMatch = originalCode.match(/\.slow\((\d+)\)/);
+                if (slowMatch) {
+                    bpm /= parseInt(slowMatch[1]);
+                    patternOps.push({ type: 'slow', value: parseInt(slowMatch[1]) });
+                }
+                
+                // Advanced modifiers
+                if (originalCode.includes('.rev()')) {
+                    patternOps.push({ type: 'rev' });
+                }
+                
+                if (originalCode.includes('.stack()')) {
+                    patternOps.push({ type: 'stack' });
+                }
+                
+                if (originalCode.includes('.jux()')) {
+                    patternOps.push({ type: 'jux' });
+                }
+            }
+            
+            const beatInterval = 60000 / (bpm / 4); // 16th notes
+            
+            // Remove soundFuncs here - now it's global initialized in initAudio()
+            // soundFuncs is now available globally after initAudio() is called
+
+            // Apply advanced pattern transformations
+            const processedPattern = applyPatternOps(pattern, patternOps);
+            addMessage(`処理済みパターン: ${processedPattern} (操作: ${patternOps.map(op => op.type + (op.value ? '(' + op.value + ')' : '')).join(', ')})`, 'info');
+
+            let beatCount = 0;
+            let maxBeats = 16;
+            const patternInterval = setInterval(() => {
+                if (beatCount >= maxBeats) {
+                    beatCount = 0;
+                }
+
+                // Play the processed pattern
+                playPatternAtBeat(processedPattern, beatCount, originalCode);
+
+                beatCount++;
+            }, beatInterval);
+            
+            // Only set as activePattern if setActive is true (for single patterns)
+            if (setActive) {
+                activePattern = {
+                    interval: patternInterval,
+                    stop: () => {
+                        if (activePattern.interval) {
+                            clearInterval(activePattern.interval);
+                            activePattern.interval = null;
+                        }
+                    }
+                };
+            } else {
+                // Return pattern object for multiple pattern management
+                return {
+                    interval: patternInterval,
+                    stop: () => {
+                        clearInterval(patternInterval);
+                    }
+                };
+            }
+        }
+
+        function playMultiplePatterns(patterns, ctx, originalCode) {
+            addMessage(`複数パターン検出: ${patterns.length}個のパターンを実行します`, 'info');
+            
+            // Ensure soundFuncs is initialized
+            if (!soundFuncs) {
+                initAudio();
+            }
+            
+            // Stop any current pattern first
+            if (activePattern && activePattern.interval) {
+                clearInterval(activePattern.interval);
+                activePattern.interval = null;
+            }
+            
+            // Play all patterns together (layered) but in a single interval
+            patterns.forEach((pattern, index) => {
+                setTimeout(() => {
+                    playSimpleBeat(pattern, ctx, originalCode, false);
+                }, index * 200); // Longer delay for distinct patterns
+            });
+            
+            // Also create a combined pattern for continuous playing
+            const combinedPattern = patterns.join(' ');
+            playSimpleBeat(combinedPattern, ctx, originalCode, false);
+            
+            addMessage(`統合パターンを実行: ${combinedPattern}`, 'info');
+        }
+
+        function applyPatternOps(pattern, ops) {
+            let result = pattern;
+            
+            ops.forEach(op => {
+                switch (op.type) {
+                    case 'rev':
+                        result = reversePattern(result);
+                        break;
+                    case 'stack':
+                        result = stackPattern(result);
+                        break;
+                    case 'jux':
+                        result = juxPattern(result);
+                        break;
+                }
+            });
+            
+            return result;
+        }
+
+        function reversePattern(pattern) {
+            // Reverse the order of sounds in pattern
+            const sounds = pattern.split(/\s+/).filter(s => s);
+            return sounds.reverse().join(' ');
+        }
+
+        function stackPattern(pattern) {
+            // Stack adds the pattern to itself (doubles the sounds)
+            const sounds = pattern.split(/\s+/).filter(s => s);
+            return sounds.concat(sounds).join(' ');
+        }
+
+        function juxPattern(pattern) {
+            // Juxtaposition - creates alternating patterns
+            const sounds = pattern.split(/\s+/).filter(s => s);
+            const juxxed = [];
+            sounds.forEach((sound, i) => {
+                juxxed.push(sound);
+                if (i % 2 === 0) {
+                    // Add a variation every other beat
+                    if (sound === 'bd') juxxed.push('sd');
+                    else if (sound === 'hh') juxxed.push('oh');
+                    else if (sound === 'sd') juxxed.push('bd');
+                    else if (sound === 'oh') juxxed.push('hh');
+                }
+            });
+            return juxxed.join(' ');
+        }
+
+        function playPatternAtBeat(pattern, beatCount, originalCode) {
+            const sounds = pattern.split(/\s+/).filter(s => s);
+            const soundIndex = beatCount % sounds.length;
+            const currentSound = sounds[soundIndex];
+            
+            // Debug output
+            console.log(`Beat ${beatCount}, Sound: ${currentSound}, Pattern: ${pattern}`);
+            
+            if (!currentSound) {
+                console.log('No current sound to play');
+                return;
+            }
+            
+            // Apply spatial effects for .jux() if needed
+            let panPosition = 0;
+            if (originalCode && originalCode.includes('.jux()')) {
+                panPosition = (soundIndex % 2 === 0) ? -0.8 : 0.8; // Left/Right panning
+            }
+            
+            try {
+                switch (currentSound) {
+                    case 'bd':
+                    case 'kick':
+                        console.log('Playing bass drum');
+                        soundFuncs.bd();
+                        break;
+                    case 'hh':
+                    case 'hat':
+                        console.log('Playing hi-hat');
+                        soundFuncs.hh();
+                        break;
+                    case 'sd':
+                    case 'snare':
+                        console.log('Playing snare');
+                        soundFuncs.sd();
+                        break;
+                    case 'oh':
+                    case 'openhat':
+                        console.log('Playing open hi-hat');
+                        soundFuncs.oh();
+                        break;
+                    default:
+                        console.log(`Unknown sound: ${currentSound}`);
+                        break;
+                }
+            } catch (error) {
+                console.error('Error playing sound:', error);
+            }
+        }
+
+        function addMessage(message, type = 'info') {
+            const messages = document.getElementById('messages');
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.style.borderLeftColor = 
+                type === 'success' ? '#00ff00' :
+                type === 'error' ? '#ff0000' :
+                type === 'warning' ? '#ffff00' :
+                type === 'music' ? '#ff00ff' :
+                '#00ff00';
+            // Preserve line breaks in messages
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> <pre style="margin: 0; white-space: pre-wrap;">${message}</pre>`;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function updateStatus(status, className) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = `WebSocket: ${status}`;
+            statusEl.className = `status ${className}`;
+        }
+
+        function connect() {
+            try {
+                // localhost:8081にstrudelクライアントとして接続
+                ws = new WebSocket('ws://localhost:8081/ws?type=strudel');
+                
+                ws.onopen = () => {
+                    addMessage('WebSocket接続が確立されました', 'success');
+                    updateStatus('接続済み', 'connected');
+                    reconnectAttempts = 0;
+                    initAudio();
+                };
+
+                ws.onmessage = (event) => {
+                    const message = event.data;
+                    addMessage(`受信: ${message}`, 'received');
+                    
+                    // 特殊コマンドの処理
+                    if (message === 'GET_CURRENT_PATTERN') {
+                        const currentCode = document.getElementById('strudelCode').value;
+                        ws.send(currentCode);
+                        addMessage(`現在のパターンを送信: ${currentCode}`, 'sent');
+                    } else if (message.trim()) {
+                        // 普通のコード実行
+                        document.getElementById('strudelCode').value = message;
+                        addMessage(`新しいコードが設定されました: ${message}`, 'info');
+                        // Strudelエンジンを実行
+                        playStrudelPattern(message);
+                    }
+                };
+
+                ws.onclose = (event) => {
+                    addMessage(`WebSocket接続が閉じられました: ${event.code} ${event.reason}`, 'warning');
+                    updateStatus('切断済み', 'disconnected');
+                    
+                    // Stop music when disconnected
+                    if (activePattern) {
+                        activePattern.stop();
+                        activePattern = null;
+                    }
+                    
+                    // 自動再接続
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        addMessage(`${reconnectAttempts}回目の再接続を試行中...`, 'info');
+                        updateStatus('再接続中', 'reconnecting');
+                        setTimeout(connect, 3000);
+                    } else {
+                        addMessage('再接続の最大試行回数に達しました', 'error');
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    addMessage(`WebSocketエラー: ${error}`, 'error');
+                    updateStatus('エラー', 'disconnected');
+                };
+
+            } catch (error) {
+                addMessage(`接続エラー: ${error.message}`, 'error');
+            }
+        }
+
+        function executeCode() {
+            const code = document.getElementById('strudelCode').value;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(code);
+                addMessage(`コードを送信: ${code}`, 'sent');
+                // Preview the sound locally too
+                playStrudelPattern(code);
+            } else {
+                addMessage('WebSocket接続が必要です', 'error');
+            }
+        }
+
+        function getCurrentPattern() {
+            // これはテスト用 - 通常はMCPサーバーからのリクエスト
+            const code = document.getElementById('strudelCode').value;
+            addMessage(`現在のパターン: ${code}`, 'info');
+        }
+
+        function stopMusic() {
+            if (activePattern) {
+                activePattern.stop();
+                activePattern = null;
+                addMessage('🛑 音楽を停止しました', 'info');
+            }
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        function initAudioAndTest() {
+            const ctx = initAudio();
+            addMessage(`AudioContext状態: ${ctx.state}`, 'info');
+            addMessage(`サンプルレート: ${ctx.sampleRate}`, 'info');
+            addMessage(`出力デバイス: ${ctx.destination ? '利用可能' : 'なし'}`, 'info');
+            
+            if (ctx.state === 'suspended') {
+                ctx.resume().then(() => {
+                    addMessage('AudioContextをresumeしました', 'success');
+                }).catch(err => {
+                    addMessage(`Resumeエラー: ${err.message}`, 'error');
+                });
+            }
+        }
+
+        function testSimpleSound() {
+            const ctx = initAudio();
+            addMessage('シンプルなテスト音を再生します...', 'info');
+            
+            try {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                osc.frequency.setValueAtTime(440, ctx.currentTime); // A4の音
+                osc.type = 'sine';
+                
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.5);
+                
+                addMessage('テスト音を再生しました (440Hz, 0.5秒)', 'success');
+            } catch (error) {
+                addMessage(`テスト音再生エラー: ${error.message}`, 'error');
+            }
+        }
+
+        // ページ読み込み時に接続
+        window.onload = () => {
+            connect();
+        };
+
+        // ページ閉じる時に切断
+        window.onbeforeunload = () => {
+            if (ws) {
+                ws.close();
+            }
+            if (activePattern) {
+                activePattern.stop();
+            }
+        };
+    </script>
+</body>
+</html>
