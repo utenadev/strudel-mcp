@@ -128,6 +128,9 @@ temp/
 strudel-repl/
 source_of_strudel/
 
+# Configuration files (local development only)
+AGENTS.md
+
 # Local development
 .local/
 

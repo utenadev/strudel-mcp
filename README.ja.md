@@ -27,7 +27,7 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
     - Strudel の Web ベースのライブコーディング環境です。
     - `strudel-mcp` サーバーからの WebSocket 接続を受け入れ、コードを実行します。
     - 現在のコードを `strudel-mcp` サーバーに送信する機能も備えています。
-    - Strudel のソースコードは `strudel-repl/src` に配置されています。
+    - Strudel のソースコードは元々 `strudel-repl/src` に配置されていましたが、現在はローカル開発参照用として管理されています。
 
 ## 使用方法 (概要)
 
@@ -36,9 +36,9 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
     - サーバーは、標準入出力 (stdio) 経由で LLM クライアントと通信します。
     - 内部で WebSocket サーバーも起動し、Strudel REPL との通信を待ち受けます。
 
-2.  **Strudel REPL を起動**:
-    - `strudel-repl` ディレクトリで、Strudel REPL をビルド・実行します。
-    - REPL は `strudel-mcp` サーバーに WebSocket 接続します。
+2.  **Strudel フロントエンドを起動**:
+    - `frontend` ディレクトリで、Webベースの Strudel インターフェースを起動します。
+    - フロントエンドは `strudel-mcp` サーバーに WebSocket 接続します。
 
 3.  **LLM クライアントから操作**:
     - LLM クライアント (例: Qwen Code) は、`strudel-mcp` サーバーに接続し、MCP プロトコルで通信します。
@@ -56,9 +56,9 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
 - `.`: Go サーバーのソースコードと設定ファイル
   - `main.go`: MCPサーバーのメイン実装（ツール群を含む）
   - `websocket_server.go`: WebSocketサーバーの実装
-- `strudel-repl/`: Strudel REPL のソースコード
+- (local only) `strudel-repl/`: 元の Strudel REPL 参照実装 (ローカルのみ)
 - `frontend/`: Webフロントエンド実装（ブラウザベースのインターフェース）
-- `source_of_strudel/`: Strudel のソースコードをコピーした元の場所 (参照用)
+- (local only) `source_of_strudel/`: 元の Strudel ソースコード参照 (ローカルのみ)
 - `my/`: プロジェクトのメタ情報やタスク管理用
 
 ## 利用可能なMCPツール

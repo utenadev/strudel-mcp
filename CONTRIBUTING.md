@@ -54,13 +54,14 @@ strudel-mcp/
 │   │   └── style.css         # Styling
 │   ├── package.json
 │   └── index.html
-├── strudel-repl/              # Reference Strudel implementation
-├── source_of_strudel/         # Original Strudel source
-├── my/                        # Project management
-│   ├── tasks.md
-│   └── easy_design.md
+├── my/                        # Project metadata and tasks
+│   ├── tasks.md              # Task management and progress
+│   └── easy_design.md        # Design documents
 ├── docs/                      # Documentation
-├── test-*.js/html            # Test files
+├── test-*.js/html            # Test utilities and interfaces
+├── README.md                  # Main project documentation
+├── README.ja.md               # Japanese documentation
+├── CONTRIBUTING.md            # Contribution guidelines
 └── go.mod, go.sum           # Go dependencies
 ```
 

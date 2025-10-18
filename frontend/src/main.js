@@ -859,6 +859,7 @@ window.analyzePerformance = function() {
 window.onload = () => {
     connect();
     initializeBasicEditor();
+    initializeSyncManager();
 };
 
 // クリーンアップ
@@ -871,6 +872,441 @@ window.onbeforeunload = () => {
     }
 };
 
+// BroadcastChannel 同期機能
+class StrudelSyncManager {
+    constructor() {
+        this.channel = null;
+        this.isActive = true;
+        this.tabId = this.generateTabId();
+        this.isPerformanceTab = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.reconnectDelay = 1000;
+        this.lastSyncTime = 0;
+        this.syncTimeout = 5000;
+        this.pendingMessages = [];
+        this.errorCount = 0;
+        this.maxErrors = 10;
+        
+        this.initializeChannel();
+        this.setupEventListeners();
+        this.announceConnection();
+        
+        console.log('[SYNC] Sync manager initialized, tab ID:', this.tabId);
+    }
+    
+    generateTabId() {
+        return 'tab-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    // BroadcastChannelの初期化とエラーハンドリング
+    initializeChannel() {
+        try {
+            this.channel = new BroadcastChannel('strudel-sync');
+            this.setupChannelErrorHandling();
+            console.log('[SYNC] BroadcastChannel initialized successfully');
+        } catch (error) {
+            this.handleChannelError('INIT_ERROR', error);
+        }
+    }
+    
+    setupChannelErrorHandling() {
+        // BroadcastChannelのエラーハンドリング（ブラウザによってはサポートされていない）
+        if (this.channel && typeof this.channel.addEventListener === 'function') {
+            this.channel.addEventListener('error', (event) => {
+                this.handleChannelError('CHANNEL_ERROR', event.error);
+            });
+        }
+    }
+    
+    handleChannelError(errorType, error) {
+        this.errorCount++;
+        console.error(`[SYNC] ${errorType}:`, error);
+        
+        // エラーカウントが閾値を超えた場合
+        if (this.errorCount >= this.maxErrors) {
+            this.disableSync('Too many errors occurred');
+            return;
+        }
+        
+        // エラーメッセージを表示
+        this.showSyncErrorNotification(errorType, error);
+        
+        // 再接続を試行
+        if (errorType === 'INIT_ERROR' || errorType === 'CHANNEL_ERROR') {
+            this.attemptReconnect();
+        }
+    }
+    
+    showSyncErrorNotification(errorType, error) {
+        const errorMessages = {
+            'INIT_ERROR': '同期機能の初期化に失敗しました',
+            'CHANNEL_ERROR': '同期チャネルでエラーが発生しました',
+            'SEND_ERROR': '同期メッセージの送信に失敗しました',
+            'TIMEOUT_ERROR': '同期がタイムアウトしました',
+            'RECONNECT_ERROR': '再接続に失敗しました'
+        };
+        
+        const message = errorMessages[errorType] || `同期エラー: ${errorType}`;
+        addMessage(`⚠️ ${message} (エラー数: ${this.errorCount}/${this.maxErrors})`, 'error');
+        
+        // 重大なエラーの場合は詳細を表示
+        if (this.errorCount >= this.maxErrors - 2) {
+            addMessage(`🔧 エラー詳細: ${error.message || error}`, 'error');
+        }
+    }
+    
+    setupEventListeners() {
+        if (!this.channel) return;
+        
+        this.channel.onmessage = (event) => {
+            if (!this.isActive) return;
+            
+            try {
+                const { type, data, senderTabId, timestamp } = event.data;
+                
+                // 自分からのメッセージは無視
+                if (senderTabId === this.tabId) return;
+                
+                // タイムスタンプチェック（古いメッセージを無視）
+                if (timestamp && timestamp < this.lastSyncTime - 10000) {
+                    console.warn('[SYNC] Ignoring old message');
+                    return;
+                }
+                
+                this.handleSyncMessage(type, data, timestamp);
+            } catch (error) {
+                this.handleChannelError('MESSAGE_ERROR', error);
+            }
+        };
+        
+        // ページを閉じる時に通知
+        window.addEventListener('beforeunload', () => {
+            this.safeBroadcast('TAB_CLOSED', {}, true);
+        });
+    }
+    
+    // 安全なメッセージ送信
+    safeBroadcast(type, data, isFinal = false) {
+        if (!this.isActive || !this.channel) return false;
+        
+        try {
+            const message = {
+                type,
+                data,
+                senderTabId: this.tabId,
+                timestamp: Date.now()
+            };
+            
+            this.channel.postMessage(message);
+            
+            // 最終メッセージ以外はペンディングリストに追加
+            if (!isFinal) {
+                this.pendingMessages.push(message);
+                this.trimPendingMessages();
+            }
+            
+            return true;
+        } catch (error) {
+            this.handleChannelError('SEND_ERROR', error);
+            return false;
+        }
+    }
+    
+    // ペンディングメッセージの管理
+    trimPendingMessages() {
+        if (this.pendingMessages.length > 50) {
+            this.pendingMessages = this.pendingMessages.slice(-25);
+        }
+    }
+    
+    // 再接続処理
+    attemptReconnect() {
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            this.disableSync('Maximum reconnection attempts reached');
+            return;
+        }
+        
+        this.reconnectAttempts++;
+        const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+        
+        console.log(`[SYNC] Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
+        
+        setTimeout(() => {
+            try {
+                if (this.channel) {
+                    this.channel.close();
+                }
+                this.initializeChannel();
+                this.setupEventListeners();
+                
+                // 再接続成功時の処理
+                addMessage(`✅ 同期機能を再接続しました (${this.reconnectAttempts}回目)`, 'success');
+                this.errorCount = Math.max(0, this.errorCount - 3); // エラーカウントを少し減らす
+                this.reconnectAttempts = 0;
+                
+                // ペンディングメッセージを再送
+                this.resendPendingMessages();
+                
+                // 接続を再通知
+                this.announceConnection();
+            } catch (error) {
+                this.handleChannelError('RECONNECT_ERROR', error);
+            }
+        }, delay);
+    }
+    
+    // ペンディングメッセージの再送
+    resendPendingMessages() {
+        if (this.pendingMessages.length === 0) return;
+        
+        console.log(`[SYNC] Resending ${this.pendingMessages.length} pending messages`);
+        
+        const messages = [...this.pendingMessages];
+        this.pendingMessages = [];
+        
+        messages.forEach(message => {
+            this.safeBroadcast(message.type, message.data);
+        });
+    }
+    
+    // 同期機能の無効化
+    disableSync(reason) {
+        this.isActive = false;
+        console.warn(`[SYNC] Sync disabled: ${reason}`);
+        addMessage(`❌ 同期機能が無効化されました: ${reason}`, 'error');
+        
+        try {
+            if (this.channel) {
+                this.channel.close();
+                this.channel = null;
+            }
+        } catch (error) {
+            console.error('[SYNC] Error closing channel:', error);
+        }
+    }
+    
+    // 同期機能の再有効化試行
+    async attemptReenableSync() {
+        if (this.errorCount >= this.maxErrors) {
+            addMessage('⚠️ エラー数が多すぎるため同期機能を再有効化できません', 'error');
+            return false;
+        }
+        
+        this.errorCount = Math.max(0, this.errorCount - 5);
+        this.reconnectAttempts = 0;
+        
+        try {
+            this.isActive = true;
+            this.initializeChannel();
+            this.setupEventListeners();
+            this.announceConnection();
+            addMessage('✅ 同期機能を再有効化しました', 'success');
+            return true;
+        } catch (error) {
+            this.handleChannelError('REENABLE_ERROR', error);
+            return false;
+        }
+    }
+    
+    announceConnection() {
+        this.safeBroadcast('TAB_CONNECTED', { isPerformanceTab: this.isPerformanceTab });
+    }
+    
+    setPerformanceTab(isPerformance) {
+        this.isPerformanceTab = isPerformance;
+        this.safeBroadcast('TAB_ROLE_CHANGED', { isPerformanceTab: isPerformance });
+    }
+    
+    // パターン変更を他タブに通知
+    broadcastPatternChange(code, patternInfo = null) {
+        if (!this.isActive) return;
+        
+        const data = {
+            code: code,
+            patternInfo: patternInfo || this.analyzePattern(code),
+            timestamp: Date.now()
+        };
+        
+        const success = this.safeBroadcast('PATTERN_CHANGE', data);
+        if (success) {
+            console.log('[SYNC] Pattern change broadcasted:', data);
+            this.lastSyncTime = Date.now();
+        }
+    }
+    
+    // 演奏状態を通知
+    broadcastPlaybackState(isPlaying, tempo = null) {
+        if (!this.isActive) return;
+        
+        this.safeBroadcast('PLAYBACK_STATE', { isPlaying, tempo });
+    }
+    
+    // MCPメッセージを転送
+    broadcastMCPMessage(messageType, data) {
+        if (!this.isActive) return;
+        
+        this.safeBroadcast('MCP_MESSAGE', { messageType, data });
+    }
+    
+    handleSyncMessage(type, data, timestamp) {
+        console.log('[SYNC] Received message:', type, data);
+        
+        switch (type) {
+            case 'TAB_CONNECTED':
+                console.log('[SYNC] New tab connected, sync may be needed');
+                this.requestSyncState();
+                break;
+                
+            case 'TAB_CLOSED':
+                console.log('[SYNC] Tab closed');
+                break;
+                
+            case 'TAB_ROLE_CHANGED':
+                console.log('[SYNC] Tab role changed:', data);
+                break;
+                
+            case 'PATTERN_CHANGE':
+                this.handlePatternChange(data, timestamp);
+                break;
+                
+            case 'PLAYBACK_STATE':
+                this.handlePlaybackState(data, timestamp);
+                break;
+                
+            case 'MCP_MESSAGE':
+                this.handleMCPMessage(data, timestamp);
+                break;
+                
+            case 'REQUEST_SYNC_STATE':
+                this.sendCurrentState();
+                break;
+        }
+    }
+    
+    handlePatternChange(data, timestamp) {
+        // 演奏タブの場合、パターンコードを更新
+        if (this.isPerformanceTab && data.code) {
+            console.log('[SYNC] Performance tab receiving pattern:', data.code);
+            
+            // エディタを更新（DOMが存在する場合）
+            const codeEditor = document.getElementById('codeEditor');
+            if (codeEditor) {
+                codeEditor.value = data.code;
+                updateLineNumbers(data.code);
+                updateBasicStatus(data.code);
+            }
+            
+            // パターンを実行
+            try {
+                executeCode(data.code);
+                addMessage('🔄 他タブからパターンを同期しました', 'success');
+            } catch (error) {
+                addMessage('同期パターン実行エラー: ' + error.message, 'error');
+            }
+        }
+    }
+    
+    handlePlaybackState(data, timestamp) {
+        const { isPlaying, tempo } = data;
+        let message = isPlaying ? '▶️ 他タブで演奏開始' : '⏸️ 他タブで演奏停止';
+        if (tempo) message += ` (テンポ: ${tempo})`;
+        addMessage(`🔄 ${message}`, 'info');
+    }
+    
+    handleMCPMessage(data, timestamp) {
+        addMessage(`🤖 MCP同期: ${data.messageType}`, 'info');
+        // 必要に応じてMCPメッセージを処理
+    }
+    
+    requestSyncState() {
+        this.safeBroadcast('REQUEST_SYNC_STATE', {});
+    }
+    
+    sendCurrentState() {
+        const currentCode = getCurrentPattern();
+        if (currentCode) {
+            this.safeBroadcast('SYNC_STATE_RESPONSE', {
+                code: currentCode,
+                isPlaying: activePattern !== null,
+                tabRole: this.isPerformanceTab ? 'performance' : 'mcp'
+            });
+        }
+    }
+    
+    analyzePattern(code) {
+        return {
+            length: code.length,
+            lines: code.split('\n').length,
+            hasSoundPatterns: /(s\(|note\()/i.test(code),
+            hasEffects: /(\.fast|\.slow|\.rev|\.jux|\.stack)/i.test(code),
+            timestamp: Date.now()
+        };
+    }
+    
+    // 同期機能のON/OFF
+    toggleSync() {
+        this.isActive = !this.isActive;
+        console.log('[SYNC] Sync', this.isActive ? 'enabled' : 'disabled');
+        return this.isActive;
+    }
+    
+    getStatus() {
+        return {
+            isActive: this.isActive,
+            tabId: this.tabId,
+            isPerformanceTab: this.isPerformanceTab,
+            connectedTabs: this.getConnectedTabs(),
+            errorCount: this.errorCount,
+            maxErrors: this.maxErrors,
+            reconnectAttempts: this.reconnectAttempts,
+            pendingMessages: this.pendingMessages.length,
+            lastSyncTime: this.lastSyncTime
+        };
+    }
+    
+    getConnectedTabs() {
+        // 簡易的な実装：実際には各タブの状態を追跡
+        return this.tabId ? 1 : 0;
+    }
+}
+
+// 同期マネージャーをグローバルに初期化
+let syncManager = null;
+
+function initializeSyncManager() {
+    if (!syncManager) {
+        syncManager = new StrudelSyncManager();
+        
+        // ウィンドウタイトルに役割を表示（5秒後）
+        setTimeout(() => {
+            const role = syncManager.isPerformanceTab ? 'Performance' : 'MCP';
+            const originalTitle = document.title;
+            document.title = `${document.title} [${role}]`;
+            setTimeout(() => {
+                document.title = originalTitle;
+            }, 3000);
+        }, 1000);
+    }
+    return syncManager;
+}
+
+// 既存のexecuteCode関数を拡張して同期機能を追加
+const originalExecuteCode = window.executeCode;
+window.executeCode = function(code) {
+    // 元の実行
+    const result = originalExecuteCode(code);
+    
+    // 同期マネージャーがあれば変更を通知
+    if (syncManager) {
+        setTimeout(() => {
+            syncManager.broadcastPatternChange(code);
+        }, 100); // 少し遅延させて実行完了を待つ
+    }
+    
+    return result;
+};
+
 // グローバル関数
 window.executeCode = executeCode;
 window.getCurrentPattern = getCurrentPattern;
@@ -878,3 +1314,64 @@ window.stopMusic = stopMusic;
 window.clearMessages = clearMessages;
 window.initAudioAndTest = initAudioAndTest;
 window.testSimpleSound = testSimpleSound;
+
+// 同期関係のグローバル関数
+window.togglePerformanceTab = function() {
+    if (syncManager) {
+        syncManager.setPerformanceTab(!syncManager.isPerformanceTab);
+        const status = syncManager.isPerformanceTab ? '演奏タブ' : 'MCPタブ';
+        addMessage(`🎭 タブの役割を${status}に変更しました`, 'info');
+        return syncManager.isPerformanceTab;
+    }
+    return false;
+};
+
+window.toggleSync = function() {
+    if (syncManager) {
+        const active = syncManager.toggleSync();
+        addMessage(`${active ? '✅' : '❌'} 同期機能${active ? '有効' : '無効'}`, 'info');
+        return active;
+    }
+    return false;
+};
+
+window.getSyncStatus = function() {
+    if (syncManager) {
+        const status = syncManager.getStatus();
+        addMessage(`📊 同期状態: ${JSON.stringify(status, null, 2)}`, 'info');
+        return status;
+    }
+    return null;
+};
+
+window.reenableSync = async function() {
+    if (syncManager) {
+        const success = await syncManager.attemptReenableSync();
+        if (success) {
+            addMessage('✅ 同期機能の再有効化に成功しました', 'success');
+        } else {
+            addMessage('❌ 同期機能の再有効化に失敗しました', 'error');
+        }
+        return success;
+    }
+    return false;
+};
+
+window.resetSyncErrors = function() {
+    if (syncManager) {
+        syncManager.errorCount = 0;
+        syncManager.reconnectAttempts = 0;
+        addMessage('🔄 同期エラーカウンターをリセットしました', 'info');
+        return true;
+    }
+    return false;
+};
+
+window.forceSyncReconnect = function() {
+    if (syncManager) {
+        syncManager.attemptReconnect();
+        addMessage('🔄 同期接続の再試行を開始しました', 'info');
+        return true;
+    }
+    return false;
+};
