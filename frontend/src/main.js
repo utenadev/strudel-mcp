@@ -1,4 +1,4 @@
-// Strudel MCP WebSocket Client - Clean Version
+// Strudel MCP WebSocket Client
 import './style.css'
 
 // WebSocket and Audio management
@@ -8,6 +8,7 @@ let maxReconnectAttempts = 5;
 let audioContext = null;
 let activePattern = null;
 let synthesizer = null;
+let soundFuncs = null;
 
 // Advanced Strudel Synthesizer Class
 class StrudelSynthesizer {
@@ -73,7 +74,6 @@ class StrudelSynthesizer {
         };
     }
 
-    // Create basic oscillator
     createOscillator(type = 'sine', frequency = 440) {
         const osc = this.ctx.createOscillator();
         osc.type = type;
@@ -81,14 +81,12 @@ class StrudelSynthesizer {
         return osc;
     }
 
-    // 创建增益节点
     createGain(gain = 1) {
         const gainNode = this.ctx.createGain();
         gainNode.gain.setValueAtTime(gain, this.ctx.currentTime);
         return gainNode;
     }
 
-    // 创建滤波器
     createFilter(type = 'lowpass', frequency = 1000, Q = 1) {
         const filter = this.ctx.createBiquadFilter();
         filter.type = type;
@@ -97,21 +95,18 @@ class StrudelSynthesizer {
         return filter;
     }
 
-    // 创建延迟效果
-    createDelay(delayTime = 0.3, feedback = 0.4) {
+    createDelay(delayTime = 0.3, feedbackAmount = 0.4) {
         const delay = this.ctx.createDelay(delayTime);
-        const feedback = this.ctx.createGain();
+        const feedbackGain = this.ctx.createGain();
         
-        feedback.gain.setValueAtTime(feedback, this.ctx.currentTime);
+        feedbackGain.gain.setValueAtTime(feedbackAmount, this.ctx.currentTime);
         
-        // 连接延迟反馈环路
-        delay.connect(feedback);
-        feedback.connect(delay);
+        delay.connect(feedbackGain);
+        feedbackGain.connect(delay);
         
-        return { delay, feedback };
+        return { delay, feedbackGain };
     }
 
-    // 创建混响效果
     createReverb() {
         const convolver = this.ctx.createConvolver();
         const wetGain = this.ctx.createGain();
@@ -123,43 +118,32 @@ class StrudelSynthesizer {
         return { convolver, wetGain, dryGain };
     }
 
-    // FM合成器
-    createFMSynth(carrier = 2, ratio = 1.5) {
-        const carrier = this.createOscillator('sine');
-        const modulator = this.createOscillator('sine');
-        const carrierGain = this.createGain();
-        const modulatorGain = this.createGain();
-        
-        carrierGain.gain.setValueAtTime(1, this.ctx.currentTime);
-        modulatorGain.gain.setValueAtTime(carrier * carrier, this.ctx.currentTime);
-        
-        carrier.frequency.setValueAtTime(220, this.ctx.currentTime);
-        modulator.frequency.setValueAtTime(110, this.ctx.currentTime);
-        modulator.type = 'sine';
+    createFMSynth(carrierFreq = 220, ratio = 1.5) {
+        const carrier = this.createOscillator('sine', carrierFreq);
+        const modulator = this.createOscillator('sine', carrierFreq * ratio);
+        const carrierGain = this.createGain(1);
+        const modulatorGain = this.createGain(carrierFreq);
         
         modulator.connect(modulatorGain);
         modulatorGain.connect(carrier.frequency);
         carrier.connect(carrierGain);
         
-        return { carrier, modulator };
+        return { carrier, modulator, carrierGain };
     }
 
-    // 加算合成器
     createAdditiveSynthesizer(frequencies = [220, 440, 880, 1760]) {
         const gains = frequencies.map(() => this.createGain());
         
         const oscillators = frequencies.map(freq => {
-            const osc = this.createOscillator('sine');
-            osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+            const osc = this.createOscillator('sine', freq);
             return osc;
         });
         
         return { oscillators, gains };
     }
 
-    // 噪音源（模拟类噪音）
     createNoiseSource(type = 'white') {
-        const bufferSize = this.ctx.sampleRate * 2; // 2秒
+        const bufferSize = this.ctx.sampleRate * 2;
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         
@@ -169,12 +153,12 @@ class StrudelSynthesizer {
             }
         } else if (type === 'pink') {
             for (let i = 0; i < bufferSize; i++) {
-                // 简化版粉红色噪音生成
                 data[i] = this.generatePinkNoiseSample(i);
             }
         } else if (type === 'brown') {
-            // 简化版褐色噪音生成
-            data[i] = this.generateBrownNoiseSample(i, data);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = this.generateBrownNoiseSample(i, data);
+            }
         }
         
         const noise = this.ctx.createBufferSource();
@@ -183,20 +167,17 @@ class StrudelSynthesizer {
     }
 
     generatePinkNoiseSample(index) {
-        // 简化版粉红色噪音生成
         const x = Math.random() - 0.5;
         return x / (1.0 + Math.abs(x));
     }
 
     generateBrownNoiseSample(index, data) {
-        // 简化版褐色噪音生成（使用之前的值）
         if (index === 0) {
             return (Math.random() - 0.5) * 0.1;
         }
         return data[index - 1] + (Math.random() - 0.5) * 0.01;
     }
 
-    // 播放声音样本
     playSample(sampleName, options = {}) {
         const sampleInfo = this.sampleLibrary.drums[sampleName] || 
                          this.sampleLibrary.melodic[sampleName] ||
@@ -263,14 +244,13 @@ class StrudelSynthesizer {
         const filterNode = soundGenerator.filter.enabled ? 
             this.createFilter(soundGenerator.filter.type, soundGenerator.filter.frequency, soundGenerator.filter.Q) : null;
         
-        // ADSR包络
+        // ADSR envelope
         gainNode.gain.setValueAtTime(0, start);
         gainNode.gain.linearRampToValueAtTime(soundGenerator.gain, start + soundGenerator.envelope.attack);
         gainNode.gain.linearRampToValueAtTime(soundGenerator.envelope.sustain, start + soundGenerator.envelope.attack + soundGenerator.envelope.decay);
         gainNode.gain.setValueAtTime(soundGenerator.gain * soundGenerator.envelope.sustain, start + soundGenerator.envelope.attack + soundGenerator.envelope.decay + soundGenerator.envelope.sustain);
         gainNode.gain.linearRampToValueAtTime(0.001, end);
 
-        // 连接音频图
         if (filterNode) {
             oscillator.connect(filterNode);
             filterNode.connect(gainNode);
@@ -286,14 +266,12 @@ class StrudelSynthesizer {
         return { oscillator, gainNode, filterNode };
     }
 
-    // 创建立体声效果
     createStereoPan(panPosition = 0) {
         const panner = this.ctx.createStereoPanner();
         panner.pan.setValueAtTime(panPosition, this.ctx.currentTime);
         return panner;
     }
 
-    // 实时参数控制节点
     createControlParameter(initialValue = 0) {
         const param = this.createParamNode(initialValue);
         return param;
@@ -306,17 +284,12 @@ class StrudelSynthesizer {
             setValue: (value, time) => {
                 param.value = value;
                 param.lastTime = time || this.ctx.currentTime;
-                // 这里可以记录参数变化历史用于可视化
             },
             getValue: () => param.value,
             automate: (automationPattern) => {
-                // 实现参数自动化
-                // automationPatternは时间-值对数或多個值-时间对数的数组
-                // 格式: [{time: 0.5, value: 100}, {time: 1.0, value: 200}]
                 if (!Array.isArray(automationPattern)) {
                     automationPattern = [{time: 0, value: automationPattern}];
                 }
-                // 实现自动化逻辑
                 automationPattern.forEach(point => {
                     if (point.time >= 0) {
                         param.setValue(point.value, point.time);
@@ -334,43 +307,6 @@ function initAudio() {
     if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
         synthesizer = new StrudelSynthesizer(audioContext);
-        
-        if (!soundFuncs) {
-            soundFuncs = {
-                'bd': () => synthesizer.playSample('bd', {
-                    waveform: 'sine',
-                    frequency: 60,
-                    gain: 1,
-                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.1 }
-                }),
-                'hh': () => synthesizer.playSample('hh', {
-                    waveform: 'square',
-                    frequency: 800,
-                    gain: 0.1,
-                    envelope: { attack: 0.01, decay: 0.05, sustain: 0.1, release: 0.01 }
-                }),
-                'oh': () => synthesizer.playSample('oh', {
-                    waveform: 'sawtooth',
-                    frequency: 400,
-                    gain: 0.1,
-                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 }
-                }),
-                'sd': () => synthesizer.playSample('sd', {
-                    waveform: 'triangle',
-                    frequency: 200,
-                    gain: 0.3,
-                    envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.05 }
-                })
-            };
-        }
-    }
-    return audioContext;
-}
-
-// Initialize audio context
-function initAudio() {
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
         if (!soundFuncs) {
             const ctx = audioContext;
@@ -445,6 +381,8 @@ function initAudio() {
 
 function addMessage(message, type = 'info') {
     const messages = document.getElementById('messages');
+    if (!messages) return;
+    
     const div = document.createElement('div');
     div.className = 'message';
     div.style.borderLeftColor = 
@@ -460,6 +398,7 @@ function addMessage(message, type = 'info') {
 
 function updateStatus(status, className) {
     const statusEl = document.getElementById('status');
+    if (!statusEl) return;
     statusEl.textContent = `WebSocket: ${status}`;
     statusEl.className = `status ${className}`;
 }
@@ -470,29 +409,32 @@ function connect() {
         
         ws.onopen = () => {
             addMessage('WebSocket connection established', 'success');
-            updateStatus('接続済み', 'connected');
+            updateStatus('Connected', 'connected');
             reconnectAttempts = 0;
             initAudio();
         };
 
         ws.onmessage = (event) => {
             const message = event.data;
-            addMessage(`受信: ${message}`, 'received');
+            addMessage(`Received: ${message}`, 'received');
             
             if (message === 'GET_CURRENT_PATTERN') {
-                const currentCode = document.getElementById('strudelCode').value;
+                const currentCode = document.getElementById('strudelCode')?.value || '';
                 ws.send(currentCode);
-                addMessage(`現在のパターンを送信: ${currentCode}`, 'sent');
+                addMessage(`Sent current pattern: ${currentCode}`, 'sent');
             } else if (message.trim()) {
-                document.getElementById('strudelCode').value = message;
-                addMessage(`新しいコードが設定されました: ${message}`, 'info');
+                const codeElem = document.getElementById('strudelCode');
+                if (codeElem) {
+                    codeElem.value = message;
+                }
+                addMessage(`New code received: ${message}`, 'info');
                 playStrudelPattern(message);
             }
         };
 
         ws.onclose = (event) => {
-            addMessage(`WebSocket接続が閉じられました: ${event.code} ${event.reason}`, 'warning');
-            updateStatus('切断済み', 'disconnected');
+            addMessage(`WebSocket connection closed: ${event.code} ${event.reason}`, 'warning');
+            updateStatus('Disconnected', 'disconnected');
             
             if (activePattern) {
                 activePattern.stop();
@@ -501,21 +443,21 @@ function connect() {
             
             if (reconnectAttempts < maxReconnectAttempts) {
                 reconnectAttempts++;
-                addMessage(`${reconnectAttempts}回目の再接続を試行中...`, 'info');
-                updateStatus('再接続中', 'reconnecting');
+                addMessage(`Reconnection attempt ${reconnectAttempts}...`, 'info');
+                updateStatus('Reconnecting', 'reconnecting');
                 setTimeout(connect, 3000);
             } else {
-                addMessage('再接続の最大試行回数に達しました', 'error');
+                addMessage('Maximum reconnection attempts reached', 'error');
             }
         };
 
         ws.onerror = (error) => {
-            addMessage(`WebSocketエラー: ${error}`, 'error');
-            updateStatus('エラー', 'disconnected');
+            addMessage(`WebSocket error: ${error}`, 'error');
+            updateStatus('Error', 'disconnected');
         };
 
     } catch (error) {
-        addMessage(`接続エラー: ${error.message}`, 'error');
+        addMessage(`Connection error: ${error.message}`, 'error');
     }
 }
 
@@ -527,7 +469,7 @@ function playStrudelPattern(code) {
     }
 
     try {
-        addMessage(`🎵 Web Audio APIでパターンを実行:\n${code}`, 'music');
+        addMessage(`🎵 Playing pattern:\n${code}`, 'music');
         
         let patterns = [];
         const allMatches = code.matchAll(/(?:s\(|sound\()\s*([^)]+)\s*\)/g);
@@ -541,24 +483,24 @@ function playStrudelPattern(code) {
         
         if (patterns.length > 0) {
             if (patterns.length === 1) {
-                addMessage(`単一パターンを検出: ${patterns[0]}`, 'info');
+                addMessage(`Single pattern detected: ${patterns[0]}`, 'info');
                 playSimpleBeat(patterns[0], ctx, code);
             } else {
-                addMessage(`複数パターンを検出: ${patterns.length}個`, 'info');
+                addMessage(`Multiple patterns detected: ${patterns.length}`, 'info');
                 playMultiplePatterns(patterns, ctx, code);
             }
         } else {
-            addMessage('⚠️ 基本的なパターンを検出できませんでした', 'warning');
+            addMessage('⚠️ Could not detect any patterns', 'warning');
             
             const simpleMatch = code.match(/(?:s\(|sound\()([^)]+)\)/);
             if (simpleMatch) {
                 const fallbackPattern = simpleMatch[1].replace(/['"]/g, '').trim();
-                addMessage(`フォールバックパターンを試します: ${fallbackPattern}`, 'warning');
+                addMessage(`Trying fallback pattern: ${fallbackPattern}`, 'warning');
                 playSimpleBeat(fallbackPattern, ctx, code);
             }
         }
     } catch (error) {
-        addMessage(`音楽実行エラー: ${error.message}`, 'error');
+        addMessage(`Pattern execution error: ${error.message}`, 'error');
     }
 }
 
@@ -594,7 +536,7 @@ function playSimpleBeat(pattern, ctx, originalCode, setActive = true) {
     
     const beatInterval = 60000 / (bpm / 4);
     
-    addMessage(`処理済みパターン: ${pattern} (操作: ${patternOps.map(op => op.type + (op.value ? '(' + op.value + ')' : '')).join(', ')})`, 'info');
+    addMessage(`Processing pattern: ${pattern} (operations: ${patternOps.map(op => op.type + (op.value ? '(' + op.value + ')' : '')).join(', ')})`, 'info');
 
     let beatCount = 0;
     let maxBeats = 16;
@@ -611,7 +553,7 @@ function playSimpleBeat(pattern, ctx, originalCode, setActive = true) {
         activePattern = {
             interval: patternInterval,
             stop: () => {
-                if (activePattern.interval) {
+                if (activePattern?.interval) {
                     clearInterval(activePattern.interval);
                     activePattern.interval = null;
                 }
@@ -628,13 +570,13 @@ function playSimpleBeat(pattern, ctx, originalCode, setActive = true) {
 }
 
 function playMultiplePatterns(patterns, ctx, originalCode) {
-    addMessage(`複数パターン検出: ${patterns.length}個のパターンを実行します`, 'info');
+    addMessage(`Multiple patterns detected: executing ${patterns.length} patterns`, 'info');
     
     if (!soundFuncs) {
         initAudio();
     }
     
-    if (activePattern && activePattern.interval) {
+    if (activePattern?.interval) {
         clearInterval(activePattern.interval);
         activePattern.interval = null;
     }
@@ -648,7 +590,7 @@ function playMultiplePatterns(patterns, ctx, originalCode) {
     const combinedPattern = patterns.join(' ');
     playSimpleBeat(combinedPattern, ctx, originalCode, false);
     
-    addMessage(`統合パターンを実行: ${combinedPattern}`, 'info');
+    addMessage(`Combined pattern: ${combinedPattern}`, 'info');
 }
 
 function playPatternAtBeat(pattern, beatCount, originalCode) {
@@ -656,7 +598,7 @@ function playPatternAtBeat(pattern, beatCount, originalCode) {
     const soundIndex = beatCount % sounds.length;
     const currentSound = sounds[soundIndex];
     
-    if (!currentSound) {
+    if (!currentSound || !soundFuncs) {
         return;
     }
     
@@ -688,50 +630,56 @@ function playPatternAtBeat(pattern, beatCount, originalCode) {
 }
 
 function executeCode() {
-    const code = document.getElementById('strudelCode').value;
+    const codeElem = document.getElementById('strudelCode');
+    const code = codeElem?.value || '';
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(code);
-        addMessage(`コードを送信: ${code}`, 'sent');
+        addMessage(`Code sent: ${code}`, 'sent');
         playStrudelPattern(code);
     } else {
-        addMessage('WebSocket接続が必要です', 'error');
+        addMessage('WebSocket connection required', 'error');
     }
 }
 
 function getCurrentPattern() {
-    const code = document.getElementById('strudelCode').value;
-    addMessage(`現在のパターン: ${code}`, 'info');
+    const codeElem = document.getElementById('strudelCode');
+    const code = codeElem?.value || '';
+    addMessage(`Current pattern: ${code}`, 'info');
+    return code;
 }
 
 function stopMusic() {
     if (activePattern) {
         activePattern.stop();
         activePattern = null;
-        addMessage('🛑 音楽を停止しました', 'info');
+        addMessage('🛑 Music stopped', 'info');
     }
 }
 
 function clearMessages() {
-    document.getElementById('messages').innerHTML = '';
+    const messagesElem = document.getElementById('messages');
+    if (messagesElem) {
+        messagesElem.innerHTML = '';
+    }
 }
 
 function initAudioAndTest() {
     const ctx = initAudio();
-    addMessage(`AudioContext状態: ${ctx.state}`, 'info');
-    addMessage(`サンプルレート: ${ctx.sampleRate}`, 'info');
+    addMessage(`AudioContext state: ${ctx.state}`, 'info');
+    addMessage(`Sample rate: ${ctx.sampleRate}`, 'info');
     
     if (ctx.state === 'suspended') {
         ctx.resume().then(() => {
-            addMessage('AudioContextをresumeしました', 'success');
+            addMessage('AudioContext resumed', 'success');
         }).catch(err => {
-            addMessage(`Resumeエラー: ${err.message}`, 'error');
+            addMessage(`Resume error: ${err.message}`, 'error');
         });
     }
 }
 
 function testSimpleSound() {
     const ctx = initAudio();
-    addMessage('シンプルなテスト音を再生します...', 'info');
+    addMessage('Playing test sound...', 'info');
     
     try {
         const osc = ctx.createOscillator();
@@ -749,24 +697,21 @@ function testSimpleSound() {
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + 0.5);
         
-        addMessage('テスト音を再生しました (440Hz, 0.5秒)', 'success');
+        addMessage('Test sound played (440Hz, 0.5s)', 'success');
     } catch (error) {
-        addMessage(`テスト音再生エラー: ${error.message}`, 'error');
+        addMessage(`Test sound error: ${error.message}`, 'error');
     }
 }
 
-// 簡易版Strudel解析機能
 function analyzeStrudelCode(code) {
     const lines = code.split('\n');
     const chars = code.split('').length;
     
-    // 基本チェック
     const openParens = (code.match(/\(/g) || []).length;
     const closeParens = (code.match(/\)/g) || []).length;
     const openBrackets = (code.match(/\[/g) || []).length;
     const closeBrackets = (code.match(/\]/g) || []).length;
     
-    // パターンタイプ検出
     const types = [];
     if (code.includes('s(') || code.includes('sound(')) types.push('rhythm');
     if (code.includes('note(')) types.push('melody');
@@ -794,10 +739,9 @@ function initializeBasicEditor() {
             updateLineNumbers(textarea.value);
         });
         
-        // 初期状態
         updateBasicStatus(textarea.value);
         updateLineNumbers(textarea.value);
-        addMessage('高度な構文エディタ: 初期化完了', 'success');
+        addMessage('Editor initialized', 'success');
     }
 }
 
@@ -816,53 +760,50 @@ function updateBasicStatus(code) {
     
     const analysis = analyzeStrudelCode(code);
     
-    let statusHtml = '<div class="status-success">✓ 構文エディタ: 準備完了</div>';
-    statusHtml += `<div class="status-warning">📊 ${analysis.lines}行, ${analysis.chars}文字</div>`;
-    statusHtml += `<div class="status-success">🎵 パターンタイプ: ${analysis.types.join(', ')}</div>`;
-    statusHtml += `<div class="status-warning">🔧 複雑度: ${analysis.complexity}</div>`;
+    let statusHtml = '<div class="status-success">✓ Editor: Ready</div>';
+    statusHtml += `<div class="status-warning">📊 ${analysis.lines} lines, ${analysis.chars} chars</div>`;
+    statusHtml += `<div class="status-success">🎵 Pattern types: ${analysis.types.join(', ')}</div>`;
+    statusHtml += `<div class="status-warning">🔧 Complexity: ${analysis.complexity}</div>`;
     
     if (analysis.parensBalanced && analysis.bracketsBalanced) {
-        statusHtml += '<div class="status-success">✓ 括弧のバランス: OK</div>';
+        statusHtml += '<div class="status-success">✓ Brackets balanced: OK</div>';
     } else {
-        statusHtml += '<div class="status-error">⚠ 括弧が一致しません</div>';
+        statusHtml += '<div class="status-error">⚠ Brackets not balanced</div>';
     }
     
     statusPanel.innerHTML = statusHtml;
 }
 
-// 開発ツール機能
 window.getStrudelDocs = async function() {
-    addMessage('📚 Strudelドキュメントを取得中...', 'info');
+    addMessage('📚 Fetching Strudel documentation...', 'info');
     try {
         const response = await fetch('/api/strudel/docs');
         const docs = await response.text();
-        addMessage('ドキュメント取得成功:\n' + docs, 'success');
+        addMessage('Documentation fetched:\n' + docs, 'success');
     } catch (error) {
-        addMessage('ドキュメント取得エラー: ' + error.message, 'error');
-        addMessage('📚 Strudel基本情報:\n- s("bd hh sd oh"): 基本ドラムパターン\n- .fast(2): 2倍速\n- .slow(2): 2倍遅く\n- .rev(): 反転\n- .stack(): 重ねる\n- .jux(): 交互', 'info');
+        addMessage('Documentation fetch error: ' + error.message, 'error');
+        addMessage('📚 Strudel basics:\n- s("bd hh sd oh"): drum pattern\n- .fast(2): 2x speed\n- .slow(2): 2x slow\n- .rev(): reverse\n- .stack(): layer\n- .jux(): alternate', 'info');
     }
 };
 
 window.startChromeDevTools = function() {
-    addMessage('🔧 Chrome DevTools連携機能はMCPサーバー経由で利用可能です', 'info');
+    addMessage('🔧 Chrome DevTools integration available via MCP server', 'info');
 };
 
 window.takePageSnapshot = function() {
-    addMessage('📸 ページスナップショット機能はMCPサーバー経由で利用可能です', 'info');
+    addMessage('📸 Page snapshot available via MCP server', 'info');
 };
 
 window.analyzePerformance = function() {
-    addMessage('📊 性能分析機能はMCPサーバー経由で利用可能です', 'info');
+    addMessage('📊 Performance analysis available via MCP server', 'info');
 };
 
-// 初期化
 window.onload = () => {
     connect();
     initializeBasicEditor();
     initializeSyncManager();
 };
 
-// クリーンアップ
 window.onbeforeunload = () => {
     if (ws) {
         ws.close();
@@ -872,7 +813,7 @@ window.onbeforeunload = () => {
     }
 };
 
-// BroadcastChannel 同期機能
+// BroadcastChannel Sync Manager
 class StrudelSyncManager {
     constructor() {
         this.channel = null;
@@ -892,26 +833,24 @@ class StrudelSyncManager {
         this.setupEventListeners();
         this.announceConnection();
         
-        console.log('[SYNC] Sync manager initialized, tab ID:', this.tabId);
+        console.log('[SYNC] Manager initialized, tab ID:', this.tabId);
     }
     
     generateTabId() {
         return 'tab-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
     }
     
-    // BroadcastChannelの初期化とエラーハンドリング
     initializeChannel() {
         try {
             this.channel = new BroadcastChannel('strudel-sync');
             this.setupChannelErrorHandling();
-            console.log('[SYNC] BroadcastChannel initialized successfully');
+            console.log('[SYNC] BroadcastChannel initialized');
         } catch (error) {
             this.handleChannelError('INIT_ERROR', error);
         }
     }
     
     setupChannelErrorHandling() {
-        // BroadcastChannelのエラーハンドリング（ブラウザによってはサポートされていない）
         if (this.channel && typeof this.channel.addEventListener === 'function') {
             this.channel.addEventListener('error', (event) => {
                 this.handleChannelError('CHANNEL_ERROR', event.error);
@@ -923,16 +862,13 @@ class StrudelSyncManager {
         this.errorCount++;
         console.error(`[SYNC] ${errorType}:`, error);
         
-        // エラーカウントが閾値を超えた場合
         if (this.errorCount >= this.maxErrors) {
-            this.disableSync('Too many errors occurred');
+            this.disableSync('Too many errors');
             return;
         }
         
-        // エラーメッセージを表示
         this.showSyncErrorNotification(errorType, error);
         
-        // 再接続を試行
         if (errorType === 'INIT_ERROR' || errorType === 'CHANNEL_ERROR') {
             this.attemptReconnect();
         }
@@ -940,19 +876,18 @@ class StrudelSyncManager {
     
     showSyncErrorNotification(errorType, error) {
         const errorMessages = {
-            'INIT_ERROR': '同期機能の初期化に失敗しました',
-            'CHANNEL_ERROR': '同期チャネルでエラーが発生しました',
-            'SEND_ERROR': '同期メッセージの送信に失敗しました',
-            'TIMEOUT_ERROR': '同期がタイムアウトしました',
-            'RECONNECT_ERROR': '再接続に失敗しました'
+            'INIT_ERROR': 'Sync initialization failed',
+            'CHANNEL_ERROR': 'Sync channel error',
+            'SEND_ERROR': 'Sync message send failed',
+            'TIMEOUT_ERROR': 'Sync timeout',
+            'RECONNECT_ERROR': 'Reconnection failed'
         };
         
-        const message = errorMessages[errorType] || `同期エラー: ${errorType}`;
-        addMessage(`⚠️ ${message} (エラー数: ${this.errorCount}/${this.maxErrors})`, 'error');
+        const message = errorMessages[errorType] || `Sync error: ${errorType}`;
+        addMessage(`⚠️ ${message} (${this.errorCount}/${this.maxErrors})`, 'error');
         
-        // 重大なエラーの場合は詳細を表示
         if (this.errorCount >= this.maxErrors - 2) {
-            addMessage(`🔧 エラー詳細: ${error.message || error}`, 'error');
+            addMessage(`🔧 Error details: ${error.message || error}`, 'error');
         }
     }
     
@@ -965,10 +900,8 @@ class StrudelSyncManager {
             try {
                 const { type, data, senderTabId, timestamp } = event.data;
                 
-                // 自分からのメッセージは無視
                 if (senderTabId === this.tabId) return;
                 
-                // タイムスタンプチェック（古いメッセージを無視）
                 if (timestamp && timestamp < this.lastSyncTime - 10000) {
                     console.warn('[SYNC] Ignoring old message');
                     return;
@@ -980,13 +913,11 @@ class StrudelSyncManager {
             }
         };
         
-        // ページを閉じる時に通知
         window.addEventListener('beforeunload', () => {
             this.safeBroadcast('TAB_CLOSED', {}, true);
         });
     }
     
-    // 安全なメッセージ送信
     safeBroadcast(type, data, isFinal = false) {
         if (!this.isActive || !this.channel) return false;
         
@@ -1000,7 +931,6 @@ class StrudelSyncManager {
             
             this.channel.postMessage(message);
             
-            // 最終メッセージ以外はペンディングリストに追加
             if (!isFinal) {
                 this.pendingMessages.push(message);
                 this.trimPendingMessages();
@@ -1013,17 +943,15 @@ class StrudelSyncManager {
         }
     }
     
-    // ペンディングメッセージの管理
     trimPendingMessages() {
         if (this.pendingMessages.length > 50) {
             this.pendingMessages = this.pendingMessages.slice(-25);
         }
     }
     
-    // 再接続処理
     attemptReconnect() {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-            this.disableSync('Maximum reconnection attempts reached');
+            this.disableSync('Max reconnection attempts reached');
             return;
         }
         
@@ -1040,15 +968,11 @@ class StrudelSyncManager {
                 this.initializeChannel();
                 this.setupEventListeners();
                 
-                // 再接続成功時の処理
-                addMessage(`✅ 同期機能を再接続しました (${this.reconnectAttempts}回目)`, 'success');
-                this.errorCount = Math.max(0, this.errorCount - 3); // エラーカウントを少し減らす
+                addMessage(`✅ Sync reconnected (attempt ${this.reconnectAttempts})`, 'success');
+                this.errorCount = Math.max(0, this.errorCount - 3);
                 this.reconnectAttempts = 0;
                 
-                // ペンディングメッセージを再送
                 this.resendPendingMessages();
-                
-                // 接続を再通知
                 this.announceConnection();
             } catch (error) {
                 this.handleChannelError('RECONNECT_ERROR', error);
@@ -1056,7 +980,6 @@ class StrudelSyncManager {
         }, delay);
     }
     
-    // ペンディングメッセージの再送
     resendPendingMessages() {
         if (this.pendingMessages.length === 0) return;
         
@@ -1070,11 +993,10 @@ class StrudelSyncManager {
         });
     }
     
-    // 同期機能の無効化
     disableSync(reason) {
         this.isActive = false;
         console.warn(`[SYNC] Sync disabled: ${reason}`);
-        addMessage(`❌ 同期機能が無効化されました: ${reason}`, 'error');
+        addMessage(`❌ Sync disabled: ${reason}`, 'error');
         
         try {
             if (this.channel) {
@@ -1086,10 +1008,9 @@ class StrudelSyncManager {
         }
     }
     
-    // 同期機能の再有効化試行
     async attemptReenableSync() {
         if (this.errorCount >= this.maxErrors) {
-            addMessage('⚠️ エラー数が多すぎるため同期機能を再有効化できません', 'error');
+            addMessage('⚠️ Too many errors to re-enable sync', 'error');
             return false;
         }
         
@@ -1101,7 +1022,7 @@ class StrudelSyncManager {
             this.initializeChannel();
             this.setupEventListeners();
             this.announceConnection();
-            addMessage('✅ 同期機能を再有効化しました', 'success');
+            addMessage('✅ Sync re-enabled', 'success');
             return true;
         } catch (error) {
             this.handleChannelError('REENABLE_ERROR', error);
@@ -1118,7 +1039,6 @@ class StrudelSyncManager {
         this.safeBroadcast('TAB_ROLE_CHANGED', { isPerformanceTab: isPerformance });
     }
     
-    // パターン変更を他タブに通知
     broadcastPatternChange(code, patternInfo = null) {
         if (!this.isActive) return;
         
@@ -1130,19 +1050,17 @@ class StrudelSyncManager {
         
         const success = this.safeBroadcast('PATTERN_CHANGE', data);
         if (success) {
-            console.log('[SYNC] Pattern change broadcasted:', data);
+            console.log('[SYNC] Pattern broadcasted:', data);
             this.lastSyncTime = Date.now();
         }
     }
     
-    // 演奏状態を通知
     broadcastPlaybackState(isPlaying, tempo = null) {
         if (!this.isActive) return;
         
         this.safeBroadcast('PLAYBACK_STATE', { isPlaying, tempo });
     }
     
-    // MCPメッセージを転送
     broadcastMCPMessage(messageType, data) {
         if (!this.isActive) return;
         
@@ -1150,11 +1068,11 @@ class StrudelSyncManager {
     }
     
     handleSyncMessage(type, data, timestamp) {
-        console.log('[SYNC] Received message:', type, data);
+        console.log('[SYNC] Received:', type, data);
         
         switch (type) {
             case 'TAB_CONNECTED':
-                console.log('[SYNC] New tab connected, sync may be needed');
+                console.log('[SYNC] New tab connected');
                 this.requestSyncState();
                 break;
                 
@@ -1185,11 +1103,9 @@ class StrudelSyncManager {
     }
     
     handlePatternChange(data, timestamp) {
-        // 演奏タブの場合、パターンコードを更新
         if (this.isPerformanceTab && data.code) {
             console.log('[SYNC] Performance tab receiving pattern:', data.code);
             
-            // エディタを更新（DOMが存在する場合）
             const codeEditor = document.getElementById('codeEditor');
             if (codeEditor) {
                 codeEditor.value = data.code;
@@ -1197,26 +1113,24 @@ class StrudelSyncManager {
                 updateBasicStatus(data.code);
             }
             
-            // パターンを実行
             try {
                 executeCode(data.code);
-                addMessage('🔄 他タブからパターンを同期しました', 'success');
+                addMessage('🔄 Pattern synced from other tab', 'success');
             } catch (error) {
-                addMessage('同期パターン実行エラー: ' + error.message, 'error');
+                addMessage('Sync pattern error: ' + error.message, 'error');
             }
         }
     }
     
     handlePlaybackState(data, timestamp) {
         const { isPlaying, tempo } = data;
-        let message = isPlaying ? '▶️ 他タブで演奏開始' : '⏸️ 他タブで演奏停止';
-        if (tempo) message += ` (テンポ: ${tempo})`;
+        let message = isPlaying ? '▶️ Playback started' : '⏸️ Playback stopped';
+        if (tempo) message += ` (Tempo: ${tempo})`;
         addMessage(`🔄 ${message}`, 'info');
     }
     
     handleMCPMessage(data, timestamp) {
-        addMessage(`🤖 MCP同期: ${data.messageType}`, 'info');
-        // 必要に応じてMCPメッセージを処理
+        addMessage(`🤖 MCP: ${data.messageType}`, 'info');
     }
     
     requestSyncState() {
@@ -1244,10 +1158,9 @@ class StrudelSyncManager {
         };
     }
     
-    // 同期機能のON/OFF
     toggleSync() {
         this.isActive = !this.isActive;
-        console.log('[SYNC] Sync', this.isActive ? 'enabled' : 'disabled');
+        console.log('[SYNC]', this.isActive ? 'enabled' : 'disabled');
         return this.isActive;
     }
     
@@ -1266,19 +1179,16 @@ class StrudelSyncManager {
     }
     
     getConnectedTabs() {
-        // 簡易的な実装：実際には各タブの状態を追跡
         return this.tabId ? 1 : 0;
     }
 }
 
-// 同期マネージャーをグローバルに初期化
 let syncManager = null;
 
 function initializeSyncManager() {
     if (!syncManager) {
         syncManager = new StrudelSyncManager();
         
-        // ウィンドウタイトルに役割を表示（5秒後）
         setTimeout(() => {
             const role = syncManager.isPerformanceTab ? 'Performance' : 'MCP';
             const originalTitle = document.title;
@@ -1291,23 +1201,20 @@ function initializeSyncManager() {
     return syncManager;
 }
 
-// 既存のexecuteCode関数を拡張して同期機能を追加
-const originalExecuteCode = window.executeCode;
+const originalExecuteCodeImpl = executeCode;
 window.executeCode = function(code) {
-    // 元の実行
-    const result = originalExecuteCode(code);
+    const result = originalExecuteCodeImpl(code);
     
-    // 同期マネージャーがあれば変更を通知
     if (syncManager) {
         setTimeout(() => {
             syncManager.broadcastPatternChange(code);
-        }, 100); // 少し遅延させて実行完了を待つ
+        }, 100);
     }
     
     return result;
 };
 
-// グローバル関数
+// Global API
 window.executeCode = executeCode;
 window.getCurrentPattern = getCurrentPattern;
 window.stopMusic = stopMusic;
@@ -1315,12 +1222,11 @@ window.clearMessages = clearMessages;
 window.initAudioAndTest = initAudioAndTest;
 window.testSimpleSound = testSimpleSound;
 
-// 同期関係のグローバル関数
 window.togglePerformanceTab = function() {
     if (syncManager) {
         syncManager.setPerformanceTab(!syncManager.isPerformanceTab);
-        const status = syncManager.isPerformanceTab ? '演奏タブ' : 'MCPタブ';
-        addMessage(`🎭 タブの役割を${status}に変更しました`, 'info');
+        const status = syncManager.isPerformanceTab ? 'Performance' : 'MCP';
+        addMessage(`🎭 Tab role: ${status}`, 'info');
         return syncManager.isPerformanceTab;
     }
     return false;
@@ -1329,7 +1235,7 @@ window.togglePerformanceTab = function() {
 window.toggleSync = function() {
     if (syncManager) {
         const active = syncManager.toggleSync();
-        addMessage(`${active ? '✅' : '❌'} 同期機能${active ? '有効' : '無効'}`, 'info');
+        addMessage(`${active ? '✅' : '❌'} Sync ${active ? 'enabled' : 'disabled'}`, 'info');
         return active;
     }
     return false;
@@ -1338,7 +1244,7 @@ window.toggleSync = function() {
 window.getSyncStatus = function() {
     if (syncManager) {
         const status = syncManager.getStatus();
-        addMessage(`📊 同期状態: ${JSON.stringify(status, null, 2)}`, 'info');
+        addMessage(`📊 Sync status: ${JSON.stringify(status, null, 2)}`, 'info');
         return status;
     }
     return null;
@@ -1348,9 +1254,9 @@ window.reenableSync = async function() {
     if (syncManager) {
         const success = await syncManager.attemptReenableSync();
         if (success) {
-            addMessage('✅ 同期機能の再有効化に成功しました', 'success');
+            addMessage('✅ Sync re-enabled', 'success');
         } else {
-            addMessage('❌ 同期機能の再有効化に失敗しました', 'error');
+            addMessage('❌ Sync re-enable failed', 'error');
         }
         return success;
     }
@@ -1361,7 +1267,7 @@ window.resetSyncErrors = function() {
     if (syncManager) {
         syncManager.errorCount = 0;
         syncManager.reconnectAttempts = 0;
-        addMessage('🔄 同期エラーカウンターをリセットしました', 'info');
+        addMessage('🔄 Sync errors reset', 'info');
         return true;
     }
     return false;
@@ -1370,7 +1276,7 @@ window.resetSyncErrors = function() {
 window.forceSyncReconnect = function() {
     if (syncManager) {
         syncManager.attemptReconnect();
-        addMessage('🔄 同期接続の再試行を開始しました', 'info');
+        addMessage('🔄 Sync reconnection started', 'info');
         return true;
     }
     return false;
