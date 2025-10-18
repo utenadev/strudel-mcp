@@ -13,7 +13,7 @@ import (
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		// 全てのオリジンを許可（本番環境では適切に制限すること）
+		// Allow all origins (implement proper restrictions in production)
 		return true
 	},
 }

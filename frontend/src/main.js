@@ -73,7 +73,7 @@ class StrudelSynthesizer {
         };
     }
 
-    // 创建基础振荡器
+    // Create basic oscillator
     createOscillator(type = 'sine', frequency = 440) {
         const osc = this.ctx.createOscillator();
         osc.type = type;
@@ -469,7 +469,7 @@ function connect() {
         ws = new WebSocket('ws://localhost:8081/ws?type=strudel');
         
         ws.onopen = () => {
-            addMessage('WebSocket接続が確立されました', 'success');
+            addMessage('WebSocket connection established', 'success');
             updateStatus('接続済み', 'connected');
             reconnectAttempts = 0;
             initAudio();

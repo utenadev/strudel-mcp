@@ -56,7 +56,7 @@ type StrudelMcpServer struct {
 func NewStrudelMcpServer() *StrudelMcpServer {
 	s := &StrudelMcpServer{}
 
-	// WebSocket接続を確立
+	// Establish WebSocket connection
 	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:8081/ws?type=mcp", nil)
 	if err != nil {
 		log.Printf("WebSocket connection error: %v", err)
@@ -84,77 +84,77 @@ func main() {
 	// Run MCP server with WebSocket client connection
 	fmt.Println("Starting Strudel MCP server...")
 	
-	// WebSocketサーバーを別途起動
+	// Start WebSocket server separately
 	go func() {
 		wsServer := NewWebSocketServer()
 		wsServer.Start(*port)
 	}()
 
-	// MCPサーバーの初期化
+	// Initialize MCP server
 	server := mcp_golang.NewServer(stdio.NewStdioServerTransport())
 
 	s := NewStrudelMcpServer()
 
-	// execute_strudel_code ツールの登録
-	err := server.RegisterTool("execute_strudel_code", "渡された JavaScript/Strudel コードを Strudel REPL で実行します。", s.executeStrudelCode)
+	// Register execute_strudel_code tool
+	err := server.RegisterTool("execute_strudel_code", "Execute JavaScript/Strudel code in Strudel REPL.", s.executeStrudelCode)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// get_current_pattern ツールの登録
-	err = server.RegisterTool("get_current_pattern", "現在 Strudel REPL で実行されている（または最後に実行された）パターンのコードを取得します。", s.getCurrentPattern)
+	// Register get_current_pattern tool
+	err = server.RegisterTool("get_current_pattern", "Get the currently executing (or last executed) pattern code from Strudel REPL.", s.getCurrentPattern)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// describe_pattern ツールの登録
-	err = server.RegisterTool("describe_pattern", "渡された Strudel コードの内容を自然言語で説明します。", s.describePattern)
+	// Register describe_pattern tool
+	err = server.RegisterTool("describe_pattern", "Explain the given Strudel code content in natural language.", s.describePattern)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// suggest_modification ツールの登録
-	err = server.RegisterTool("suggest_modification", "現在のパターンと、ユーザーからの自然言語での変更リクエストを受け取り、修正後のコードを提案します。", s.suggestModification)
+	// Register suggest_modification tool
+	err = server.RegisterTool("suggest_modification", "Take current pattern and natural language modification request from user, and suggest modified code.", s.suggestModification)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// get_strudel_docs ツールの登録
-	err = server.RegisterTool("get_strudel_docs", "Strudelのドキュメントを取得します。Context7を通じて最新の情報にアクセスします。", s.getStrudelDocs)
+	// Register get_strudel_docs tool
+	err = server.RegisterTool("get_strudel_docs", "Get Strudel documentation. Access latest information through Context7.", s.getStrudelDocs)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// take_page_snapshot ツールの登録
-	err = server.RegisterTool("take_page_snapshot", "現在のページのスクリーンショットを撮ります。Chrome DevToolsを使用します。", s.takePageSnapshot)
+	// Register take_page_snapshot tool
+	err = server.RegisterTool("take_page_snapshot", "Take a screenshot of the current page. Uses Chrome DevTools.", s.takePageSnapshot)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// analyze_performance ツールの登録
-	err = server.RegisterTool("analyze_performance", "ページのパフォーマンスを分析します。Chrome DevToolsの性能分析機能を使用します。", s.analyzePerformance)
+	// Register analyze_performance tool
+	err = server.RegisterTool("analyze_performance", "Analyze page performance. Uses Chrome DevTools performance analysis.", s.analyzePerformance)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// chrome_dev_tools ツールの登録
-	err = server.RegisterTool("chrome_dev_tools", "Chrome DevToolsの各種機能にアクセスします。", s.chromeDevTools)
+	// Register chrome_dev_tools tool
+	err = server.RegisterTool("chrome_dev_tools", "Access various Chrome DevTools functions.", s.chromeDevTools)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// サーバーの起動
+	// Start server
 	if err := server.Serve(); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func (s *StrudelMcpServer) executeStrudelCode(arguments ExecuteStrudelCodeArguments) (*mcp_golang.ToolResponse, error) {
-	// Strudel REPL にコードを送信する処理
-	// 実際にはWebSocketやHTTP API経由でREPLに送信する必要がある
+	// Process to send code to Strudel REPL
+	// In practice, need to send via WebSocket or HTTP API to REPL
 	s.currentCode = arguments.Code
 
-	// エラーチェック: コードが空でないことを確認
+	// Error check: ensure code is not empty
 	if strings.TrimSpace(arguments.Code) == "" {
 		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("Code cannot be empty")), fmt.Errorf("code cannot be empty")
 	}
@@ -347,7 +347,7 @@ func (s *StrudelMcpServer) getFallbackDocs(topic string) string {
 
 詳細な情報: https://strudel.cc`
 
-現在地: ${topic ? "トピック: " + topic : "基本ドキュメント"}`
+Location: ${topic ? "Topic: " + topic : "Basic Documentation"}`
 
 	return docs
 }
@@ -370,7 +370,7 @@ func (s *StrudelMcpServer) takePageSnapshot(arguments TakePageSnapshotArguments)
 		if err != nil {
 			return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("WebSocket error: "+err.Error())), err
 		}
-		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("ページスナップショットリクエストを送信しました")), nil
+		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("Page snapshot request sent")), nil
 	}
 
 	return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("WebSocket connection not established")), fmt.Errorf("websocket connection not established")
@@ -393,7 +393,7 @@ func (s *StrudelMcpServer) analyzePerformance(arguments AnalyzePerformanceArgume
 		if err != nil {
 			return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("WebSocket error: "+err.Error())), err
 		}
-		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("性能分析リクエストを送信しました")), nil
+		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("Performance analysis request sent")), nil
 	}
 
 	return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("WebSocket connection not established")), fmt.Errorf("websocket connection not established")
@@ -420,7 +420,7 @@ func (s *StrudelMcpServer) chromeDevTools(arguments ChromeDevToolsArguments) (*m
 		if err != nil {
 			return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("WebSocket error: "+err.Error())), err
 		}
-		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent(fmt.Sprintf("Chrome DevToolsアクション '%s' を送信しました", arguments.Action))), nil
+		return mcp_golang.NewToolResponse(mcp_golang.NewTextContent(fmt.Sprintf("Chrome DevTools action '%s' sent", arguments.Action))), nil
 	}
 
 	return mcp_golang.NewToolResponse(mcp_golang.NewTextContent("WebSocket connection not established")), fmt.Errorf("websocket connection not established")
