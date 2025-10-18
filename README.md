@@ -16,8 +16,23 @@ Strudel MCP allows Large Language Models (LLMs) to:
 ┌─────────────┐    MCP     ┌──────────────┐    WebSocket    ┌─────────────┐
 │   LLM       │ ◄──────► │ strudel-mcp  │ ◄─────────────► │  Strudel    │
 │  (Qwen/     │  Protocol │   Server     │   Communication│  REPL/      │
-│  etc.)      │           │   (Go)       │                │  Frontend   │
+│  etc.)      │           │ (Node.js ✨) │                │  Frontend   │
 └─────────────┘           └──────────────┘                └─────────────┘
+```
+
+### Server Options
+
+**Node.js (Recommended - NEW)**
+```bash
+cd server-node
+npm install
+npm run dev
+```
+
+**Go (Legacy - Phase-out planned)**
+```bash
+cd server-go
+go run main.go
 ```
 
 ### Components
