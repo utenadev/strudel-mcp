@@ -7,6 +7,7 @@ let reconnectAttempts = 0;
 let maxReconnectAttempts = 5;
 let audioContext = null;
 let activePattern = null;
+let activeIntervals = [];
 let synthesizer = null;
 let soundFuncs = null;
 
@@ -550,20 +551,24 @@ function playSimpleBeat(pattern, ctx, originalCode, setActive = true) {
     }, beatInterval);
     
     if (setActive) {
+        activeIntervals.push(patternInterval);
         activePattern = {
-            interval: patternInterval,
+            intervals: activeIntervals,
             stop: () => {
-                if (activePattern?.interval) {
-                    clearInterval(activePattern.interval);
-                    activePattern.interval = null;
+                if (activeIntervals && activeIntervals.length > 0) {
+                    activeIntervals.forEach(interval => clearInterval(interval));
+                    activeIntervals = [];
                 }
+                activePattern = null;
             }
         };
     } else {
+        activeIntervals.push(patternInterval);
         return {
             interval: patternInterval,
             stop: () => {
                 clearInterval(patternInterval);
+                activeIntervals = activeIntervals.filter(id => id !== patternInterval);
             }
         };
     }
@@ -576,6 +581,10 @@ function playMultiplePatterns(patterns, ctx, originalCode) {
         initAudio();
     }
     
+    if (activeIntervals && activeIntervals.length > 0) {
+        activeIntervals.forEach(interval => clearInterval(interval));
+        activeIntervals = [];
+    }
     if (activePattern?.interval) {
         clearInterval(activePattern.interval);
         activePattern.interval = null;
@@ -649,10 +658,17 @@ function getCurrentPattern() {
 }
 
 function stopMusic() {
-    if (activePattern) {
+    if (activeIntervals && activeIntervals.length > 0) {
+        activeIntervals.forEach(interval => clearInterval(interval));
+        activeIntervals = [];
+        activePattern = null;
+        addMessage('🛑 Music stopped', 'info');
+    } else if (activePattern) {
         activePattern.stop();
         activePattern = null;
         addMessage('🛑 Music stopped', 'info');
+    } else {
+        addMessage('No music playing', 'info');
     }
 }
 
