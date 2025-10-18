@@ -135,7 +135,7 @@ WebSocket: Connected ✓
 ```
 
 **スクリーンショット 1 - タブ1初期化**:
-![test-screenshot-02-tab1.png](test-screenshot-02-tab1.png)
+![test-screenshot-02-tab1.png](images/test-screenshot-02-tab1.png)
 
 **結果**: ✅ **PASSED** - WebSocket接続が確立され、全機能が初期化完了
 
@@ -246,7 +246,7 @@ window.getSyncStatus();
 ```
 
 **スクリーンショット 2 - タブ2の同期状態**:
-![test-screenshot-03-tab2.png](test-screenshot-03-tab2.png)
+![test-screenshot-03-tab2.png](images/test-screenshot-03-tab2.png)
 
 **テスト項目**:
 - [x] BroadcastChannel初期化: 両タブで成功
@@ -441,15 +441,15 @@ Chrome DevTools MCP: 統合済み
 ## 画面キャプチャ
 
 ### スクリーンショット 1: WebSocket接続確立時
-ファイル: `test-screenshot-01-initial.png`
+ファイル: `images/test-screenshot-01-initial.png`
 内容: フロントエンド初期化、WebSocket接続成功表示
 
 ### スクリーンショット 2: タブ1 - パターン実行テスト
-ファイル: `test-screenshot-02-tab1.png`
+ファイル: `images/test-screenshot-02-tab1.png`
 内容: パターン実行、ログ表示、メッセージ記録
 
 ### スクリーンショット 3: タブ2 - BroadcastChannel同期確認
-ファイル: `test-screenshot-03-tab2.png`
+ファイル: `images/test-screenshot-03-tab2.png`
 内容: 同期マネージャー状態表示、複数タブの独立動作
 
 ---

@@ -437,7 +437,7 @@ chrome-devtools___performance_start_trace({
 
 ### Files Referenced
 - `TEST_RESULTS_JA.md` - Detailed Japanese documentation with screenshots and examples
-- `test-screenshot-01-initial.png` - Initial state
-- `test-screenshot-02-tab1.png` - Tab 1 pattern execution
-- `test-screenshot-03-tab2.png` - Tab 2 synchronization
-- `test-screenshot-04-context7-integration.png` - Context7 integration
+- `images/test-screenshot-01-initial.png` - Initial state
+- `images/test-screenshot-02-tab1.png` - Tab 1 pattern execution
+- `images/test-screenshot-03-tab2.png` - Tab 2 synchronization
+- `images/test-screenshot-04-context7-integration.png` - Context7 integration
