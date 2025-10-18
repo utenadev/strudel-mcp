@@ -10,9 +10,11 @@
   },
   "dependencies": {
     "@strudel/core": "file:../source_of_strudel/packages/core",
-    "@strudel/webaudio": "file:../source_of_strudel/packages/webaudio",
     "@strudel/mini": "file:../source_of_strudel/packages/mini",
-    "@strudel/tonal": "file:../source_of_strudel/packages/tonal"
+    "@strudel/monorepo": "file:../source_of_strudel",
+    "@strudel/tonal": "file:../source_of_strudel/packages/tonal",
+    "@strudel/transpiler": "file:../source_of_strudel/packages/transpiler",
+    "@strudel/webaudio": "file:../source_of_strudel/packages/webaudio"
   },
   "devDependencies": {
     "vite": "^7.1.7"

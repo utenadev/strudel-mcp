@@ -126,7 +126,7 @@ temp/
 
 # Local reference directories (not part of this repository)
 strudel-repl/
-source_of_strudel/
+# source_of_strudel/ is now managed as a git submodule
 
 # Configuration files (local development only)
 AGENTS.md
