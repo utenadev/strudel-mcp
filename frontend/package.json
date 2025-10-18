@@ -8,6 +8,12 @@
     "build": "vite build",
     "preview": "vite preview"
   },
+  "dependencies": {
+    "@strudel/core": "file:../source_of_strudel/packages/core",
+    "@strudel/webaudio": "file:../source_of_strudel/packages/webaudio",
+    "@strudel/mini": "file:../source_of_strudel/packages/mini",
+    "@strudel/tonal": "file:../source_of_strudel/packages/tonal"
+  },
   "devDependencies": {
     "vite": "^7.1.7"
   }
