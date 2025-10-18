@@ -137,3 +137,9 @@ AGENTS.md
 # Test files
 test-results/
 playwright-report/
+
+# server-node
+server-node/node_modules/
+server-node/dist/
+server-node/.env
+server-node/.env.local
