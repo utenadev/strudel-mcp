@@ -15,33 +15,39 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
 
 ## 概要
 
-このプロジェクトは、Go 言語で実装された MCP サーバー (`strudel-mcp`) と、Strudel REPL の2つの主要部分で構成されています。
+このプロジェクトには、Node.js で実装された MCP サーバー (`server-node`) と、Go 言語で実装されたレガシー MCP サーバー (`server-go`) があり、現在は Node.js サーバーが推奨されています。また、Web ブラウザ上で動作する Strudel REPL (`frontend`) と連携します。
 
-- **`strudel-mcp` (Goサーバー)**:
-    - MCP サーバーとして動作し、LLM クライアントからのリクエストを処理します。
-    - LLM からのリクエストに応じて、Strudel REPL にコードを送信したり、現在のコードを取得したりします。
-    - Strudel REPL との通信には、WebSocket を使用します。
+- **`server-node` (Node.jsサーバー - 推奨)**:
+    - Node.js + TypeScript で実装された MCP サーバー。
+    - LLM からのリクエストを処理し、Strudel REPL との通信を担当。
+    - WebSocket を使用して `frontend` と通信します。
+    - Express + Jest で構築されています。
+
+- **`server-go` (Goサーバー - レガシー)**:
+    - Go 言語で実装された MCP サーバー。
+    - LLM からのリクエストを処理し、Strudel REPL との通信を担当。
+    - WebSocket を使用して `frontend` と通信します。
     - `github.com/metoro-io/mcp-golang` ライブラリを使用して実装されています。
+    - 将来的に非推奨（フェーズアウト）される予定です。
 
-- **Strudel REPL**:
+- **`frontend` (WebベースのStrudel REPL)**:
     - Strudel の Web ベースのライブコーディング環境です。
-    - `strudel-mcp` サーバーからの WebSocket 接続を受け入れ、コードを実行します。
-    - 現在のコードを `strudel-mcp` サーバーに送信する機能も備えています。
-    - Strudel のソースコードは元々 `strudel-repl/src` に配置されていましたが、現在はローカル開発参照用として管理されています。
+    - `server-node` または `server-go` との WebSocket 接続を受け入れ、コードを実行します。
+    - 現在のコードをサーバーに送信する機能も備えています。
 
 ## 使用方法 (概要)
 
-1.  **`strudel-mcp` サーバーを起動**:
-    - Go でコンパイルし、実行ファイルを起動します。
+1.  **`server-node` サーバーを起動 (推奨)**:
+    - `server-node` ディレクトリで `npm install` し、`npm run dev` で起動します。
     - サーバーは、標準入出力 (stdio) 経由で LLM クライアントと通信します。
-    - 内部で WebSocket サーバーも起動し、Strudel REPL との通信を待ち受けます。
+    - 内部で WebSocket サーバーも起動し、`frontend` との通信を待ち受けます。
 
 2.  **Strudel フロントエンドを起動**:
     - `frontend` ディレクトリで、Webベースの Strudel インターフェースを起動します。
-    - フロントエンドは `strudel-mcp` サーバーに WebSocket 接続します。
+    - フロントエンドは `server-node` または `server-go` サーバーに WebSocket 接続します。
 
 3.  **LLM クライアントから操作**:
-    - LLM クライアント (例: Qwen Code) は、`strudel-mcp` サーバーに接続し、MCP プロトコルで通信します。
+    - LLM クライアント (例: Qwen Code) は、`server-node` サーバーに接続し、MCP プロトコルで通信します。
     - `execute_strudel_code` ツールを呼び出して、Strudel コードを実行します。
     - `get_current_pattern` ツールを呼び出して、現在の Strudel コードを取得します。
     - `describe_pattern` ツールを呼び出して、Strudel コードの内容を自然言語で説明します。
@@ -51,15 +57,32 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
     - `analyze_performance` ツールでページのパフォーマンスを分析します。
     - `chrome_dev_tools` ツールでChrome DevToolsの各種機能にアクセスします。
 
+## サーバー選択
+
+**Node.js サーバー (推奨)**
+```bash
+cd server-node
+npm install
+npm run dev
+```
+
+**Go サーバー (レガシー - 将来的にフェーズアウト予定)**
+```bash
+cd server-go
+go run main.go
+```
+
 ## ディレクトリ構造
 
-- `.`: Go サーバーのソースコードと設定ファイル
-  - `main.go`: MCPサーバーのメイン実装（ツール群を含む）
-  - `websocket_server.go`: WebSocketサーバーの実装
-- (local only) `strudel-repl/`: 元の Strudel REPL 参照実装 (ローカルのみ)
+- `server-node/`: Node.js + TypeScript によるサーバー実装
+  - `src/index.ts` 等: MCPサーバーのメイン実装（TypeScript）
+- `server-go/`: Go によるレガシーサーバー実装
+  - `main.go`: Go MCPサーバーの実装
+  - `websocket_server.go`: Go WebSocketサーバーの実装
 - `frontend/`: Webフロントエンド実装（ブラウザベースのインターフェース）
-- (local only) `source_of_strudel/`: 元の Strudel ソースコード参照 (ローカルのみ)
+- `source_of_strudel/`: 元の Strudel ソースコード参照 (git submodule)
 - `my/`: プロジェクトのメタ情報やタスク管理用
+- `openspec/`: OpenAPI/MCP仕様関連ファイル
 
 ## 利用可能なMCPツール
 
@@ -79,4 +102,4 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
 
 ## ライセンス
 
-このプロジェクトのライセンスは、Strudel のライセンスに準拠します。詳細は `LICENSE` ファイルを参照してください。
+このプロジェクトのライセンスは、Strudel のライセンスに準拠します。詳細は `LICENSE` ファイルを参照してください.

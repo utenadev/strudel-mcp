@@ -134,6 +134,9 @@ AGENTS.md
 
 # Local development
 .local/
+.factory/
+.qwen/
+my/
 
 # Test files
 test-results/
