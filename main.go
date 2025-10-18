@@ -298,56 +298,46 @@ func (s *StrudelMcpServer) getStrudelDocs(arguments GetStrudelDocsArguments) (*m
 }
 
 func (s *StrudelMcpServer) getFallbackDocs(topic string) string {
-	// フォールバック用の基本ドキュメント
-	docs := "# Strudel ドキュメント\n\n" +
-		"StrudelはJavaScriptベースのライブコーディング環境で、TidalCyclesのパターン言語をブラウザに移植したものです。
-
-## 基本パターン
-
-### リズムパターン
-- s("bd hh sd oh") - 基本ドラムパターン
-- s("kick snare*2 hat*8") - 複数のサウンド
-- s("bd(3,8) snare(4,8)") - ユークリッドリズム
-
-### メロディーパターン  
-- note("c e g b") - 基本メロディー
-- n("0 2 4 6").scale("C:major") - スケール上の音階
-
-## パターン操作
-
-### 変形
-- \`.fast(2)\` - 2倍速く
-- \`.slow(2)\` - 2倍遅く  
-- \`.rev()\` - 反転
-- \`.every(4, fast(2))\` - 4回ごとに2倍速
-
-### 組み合わせ
-- \`.stack()\` - パターンを重ねる
-- \`.jux()\` - 左右交互
-- \`.append()\` - パターンを連結
-
-## 高度な機能
-
-### サンプル制御
-- \`s("bd").bank("RolandTR909")\` - サンプルバンク指定
-- \`s("hh").n("0 1 2 3")\` - サンプルバリエーション
-
-### エフェクト
-- \`.lpf(1000)\` - ローパスフィルター
-- \`.delay(0.5)\` - ディレイ
-- \`.room(0.3)\` - リバーブ
-
-## 特殊構文
-
-- \`<bd sd>\` - 交互選択（毎サイクル）
-- \`[bd <hh sd>]\` - 入れ子構造
-- \`bd*3\` - 繰り返し
-- \`bd/2\` - 分割
-- \`~\` - 休符
-
-詳細な情報: https://strudel.cc`
-
-Location: ${topic ? "Topic: " + topic : "Basic Documentation"}`
+	// Fallback basic documentation
+	docs := "# Strudel Documentation\n\n" +
+		"Strudel is a JavaScript-based live coding environment that ports TidalCycles pattern language to the browser.\n\n" +
+		"## Basic Patterns\n\n" +
+		"### Rhythm Patterns\n" +
+		"- s(\"bd hh sd oh\") - basic drum pattern\n" +
+		"- s(\"kick snare*2 hat*8\") - multiple sounds\n" +
+		"- s(\"bd(3,8) snare(4,8)\") - Euclidean rhythm\n\n" +
+		"### Melody Patterns\n" +
+		"- note(\"c e g b\") - basic melody\n" +
+		"- n(\"0 2 4 6\").scale(\"C:major\") - scale notes\n\n" +
+		"## Pattern Operations\n\n" +
+		"### Transformations\n" +
+		"- `.fast(2)` - 2x speed\n" +
+		"- `.slow(2)` - 2x slower\n" +
+		"- `.rev()` - reverse\n" +
+		"- `.every(4, fast(2))` - every 4 cycles at 2x speed\n\n" +
+		"### Combinations\n" +
+		"- `.stack()` - layer patterns\n" +
+		"- `.jux()` - alternate left/right\n" +
+		"- `.append()` - concatenate patterns\n\n" +
+		"## Advanced Features\n\n" +
+		"### Sample Control\n" +
+		"- `s(\"bd\").bank(\"RolandTR909\")` - specify sample bank\n" +
+		"- `s(\"hh\").n(\"0 1 2 3\")` - sample variations\n\n" +
+		"### Effects\n" +
+		"- `.lpf(1000)` - low-pass filter\n" +
+		"- `.delay(0.5)` - delay effect\n" +
+		"- `.room(0.3)` - reverb effect\n\n" +
+		"## Special Syntax\n\n" +
+		"- `<bd sd>` - alternation (each cycle)\n" +
+		"- `[bd <hh sd>]` - nesting\n" +
+		"- `bd*3` - repetition\n" +
+		"- `bd/2` - subdivision\n" +
+		"- `~` - rest\n\n" +
+		"More info: https://strudel.cc"
+	
+	if topic != "" {
+		docs += "\n\nTopic: " + topic
+	}
 
 	return docs
 }
