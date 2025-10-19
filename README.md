@@ -62,13 +62,8 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
 
 ### MCP Tools
 - `execute_strudel_code` - Execute Strudel patterns
-- `get_current_pattern` - Get current active pattern
-- `describe_pattern` - Natural language description of patterns
-- `suggest_modification` - Pattern modification suggestions
-- `get_strudel_docs` - Context7 documentation access
-- `take_page_snapshot` - Browser screenshot capabilities
-- `analyze_performance` - Performance analysis tools
-- `chrome_dev_tools` - Chrome DevTools integration
+- `get_current_pattern` - Get current active pattern  
+- `get_strudel_knowledge` - Built-in Strudel documentation and knowledge base
 
 ### Synchronization Features
 - **BroadcastChannel API**: Cross-tab pattern synchronization
@@ -79,20 +74,21 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
 
 ### Prerequisites
 - Node.js (>=18)
-- Go (>=1.21)
 - Modern browser with WebSocket support
 
 ### Installation
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/strudel-mcp.git
+   git clone https://github.com/utenadev/strudel-mcp.git
    cd strudel-mcp
    ```
 
-2. **Install Go dependencies**:
+2. **Install Node.js dependencies**:
    ```bash
-   go mod tidy
+   cd server-node
+   npm install
+   cd ..
    ```
 
 3. **Install frontend dependencies**:
@@ -102,63 +98,162 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
    cd ..
    ```
 
-4. **Build the Go server**:
+4. **Start the servers** (recommended - Node.js):
    ```bash
-   go build -o strudel-mcp.exe main.go websocket_server.go
-   ```
-
-5. **Start the WebSocket server**:
-   ```bash
-   ./strudel-mcp.exe -websocket -port 8081
-   ```
-
-6. **Start the frontend**:
-   ```bash
+   # Terminal 1: Start MCP + WebSocket server
+   cd server-node
+   npm run dev
+   
+   # Terminal 2: Start frontend
    cd frontend
    npm run dev
    ```
-
-7. **Start MCP server**:
+   
+   Or use the legacy Go server:
    ```bash
-   ./strudel-mcp.exe
+   cd server-go
+   go run main.go websocket_server.go
    ```
 
 ### Usage with LLM
 
-Configure your LLM client (e.g., Qwen Code) to use the MCP server:
+#### Qwen3-Coder + Qwen-code (MCP Configuration Required)
+
+Create `.qwen/settings.json` in your project root:
+
+**Production (built version)**:
+```json
+{
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "node",
+      "args": ["server-node/dist/index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
+```
+
+**Development (npm dev)**:
+```json
+{
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "npm", 
+      "args": ["run", "dev"],
+      "cwd": "server-node",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "true"
+      }
+    }
+  }
+}
+```
+
+*Pre-built settings provided in this repository:*
+- `.qwen/settings.json` - Production ready
+- `.qwen/settings.dev.json` - Development mode
+
+*Build first for production: `cd server-node && npm run build`*
+
+#### Gemini CLI (MCP Configuration Required)
+
+Configure `~/.gemini/settings.json`:
+
+```json
+{
+  "selectedAuthType": "gemini-api-key",
+  "theme": "Dracula",
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "node",
+      "args": ["/path/to/strudel-mcp/server-node/dist/index.js"],
+      "cwd": "/path/to/strudel-mcp/server-node"
+    }
+  }
+}
+```
+
+*Build first: `cd server-node && npm run build`*
+
+*Verify with `/mcp` command in Gemini CLI*
+
+#### Claude Desktop (MCP Configuration Required)
+
+Configure Claude Desktop settings:
+
+1. Open Claude Desktop → Settings → Developer → Edit Config
+2. Add to `mcpServers`:
 
 ```json
 {
   "mcpServers": {
     "strudel-mcp": {
-      "command": "path/to/strudel-mcp.exe",
-      "args": []
+      "command": "node",
+      "args": ["/path/to/strudel-mcp/server-node/dist/index.js"],
+      "cwd": "/path/to/strudel-mcp/server-node"
     }
   }
 }
 ```
+
+3. Restart Claude Desktop
+4. Verify tools are available in new chat
+
+#### GitHub Copilot (MCP Configuration Required)
+
+In VS Code with GitHub Copilot (v1.99+):
+
+1. Open Settings → Extensions → GitHub Copilot
+2. Enable "MCP servers in Copilot" policy
+3. Use GitHub MCP Registry or manual configuration
+
+```json
+{
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "node",
+      "args": ["/path/to/strudel-mcp/server-node/dist/index.js"],
+      "cwd": "/path/to/strudel-mcp/server-node"
+    }
+  }
+}
+```
+
+**Note**: Replace `/path/to/strudel-mcp` with your actual repository path
 
 ## Development
 
 ### Project Structure
 ```
 strudel-mcp/
-├── main.go                    # MCP server implementation
-├── websocket_server.go        # WebSocket server
+├── server-node/               # Node.js MCP server (recommended)
+│   ├── src/
+│   │   ├── index.ts          # Main server entry
+│   │   ├── mcp/              # MCP protocol handlers
+│   │   ├── websocket/        # WebSocket manager
+│   │   └── utils/            # Utilities (logger, config)
+│   ├── package.json          # Dependencies
+│   └── tsconfig.json         # TypeScript config
+├── server-go/                 # Legacy Go server
+│   ├── main.go               # Go MCP implementation
+│   └── websocket_server.go   # Go WebSocket server
 ├── frontend/                  # Web-based Strudel interface
 │   ├── src/
 │   │   ├── main.js           # Main frontend application
 │   │   └── style.css         # Styling
 │   └── package.json
-├── my/                        # Project metadata and tasks
-│   ├── tasks.md              # Task management
-│   └── easy_design.md        # Design documents
 ├── docs/                      # Documentation
-└── test-*.js/html            # Test utilities
+├── source_of_strudel/         # Strudel source reference (git submodule)
+└── images/                    # Screenshots and assets
 ```
 
 ### Key Technologies
-- **Backend**: Go with `github.com/metoro-io/mcp-golang`
+- **Backend (Node.js)**: TypeScript + Express + @modelcontextprotocol/sdk
+- **Backend (Go)**: Go with `github.com/metoro-io/mcp-golang` (legacy)
 - **Frontend**: Vanilla JavaScript with Vite
 - **Communication**: WebSocket protocol
 - **Synchronization**: BroadcastChannel API
@@ -194,7 +289,40 @@ strudel-mcp/
 - `ws://localhost:8081/ws?type=strudel` - Strudel frontend connection
 
 ### MCP Tool Reference
-See [./mcp-tools.md](./docs/mcp-tools.md) for detailed API documentation.
+
+#### execute_strudel_code
+Execute Strudel pattern code
+```json
+{
+  "name": "execute_strudel_code",
+  "arguments": {
+    "code": "s('bd hh sd oh').fast(2)"
+  }
+}
+```
+
+#### get_current_pattern  
+Get currently executing pattern
+```json
+{
+  "name": "get_current_pattern",
+  "arguments": {}
+}
+```
+
+#### get_strudel_knowledge
+Built-in Strudel documentation
+```json
+{
+  "name": "get_strudel_knowledge",
+  "arguments": {
+    "topic": "basics",
+    "query": "drum patterns"
+  }
+}
+```
+
+**Available topics**: `basics`, `patterns`, `effects`, `troubleshooting`
 
 ## Troubleshooting
 

@@ -10,8 +10,7 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
 - **Strudel REPLの制御**: LLM からの指示に従って、Strudel REPL でコードを実行し、音楽を生成・演奏します。
 - **双方向通信**: Strudel REPL からの応答（現在のコードなど）を LLM に返します。
 - **ライブコーディング支援**: LLM と Strudel を組み合わせることで、より直感的で創造的なライブコーディング体験を提供します。
-- **Context7統合**: 外部ドキュメントサービスContext7と連携し、Strudelの最新ドキュメント取得を可能にします。
-- **Chrome DevTools連携**: ブラウザベースのStrudel REPLのスクリーンショット撮影や性能分析を行えます。
+- **組み込みドキュメント**: 外部依存のないStrudel知識ベースを内包し、LLMが常に最新の文法にアクセス可能です。
 
 ## 概要
 
@@ -35,6 +34,138 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
     - `server-node` または `server-go` との WebSocket 接続を受け入れ、コードを実行します。
     - 現在のコードをサーバーに送信する機能も備えています。
 
+## インストール方法
+
+1. **リポジトリをクローン**:
+   ```bash
+   git clone https://github.com/utenadev/strudel-mcp.git
+   cd strudel-mcp
+   ```
+
+2. **Node.js依存関係をインストール**:
+   ```bash
+   cd server-node
+   npm install
+   cd ..
+   ```
+
+3. **フロントエンド依存関係をインストール**:
+   ```bash
+   cd frontend
+   npm install
+   cd ..
+   ```
+
+## LLMクライアント別利用方法
+
+### Qwen3-Coder + Qwen-code (MCP設定要)
+
+プロジェクトルートに `.qwen/settings.json` を作成：
+
+**本番環境（ビルド版）**:
+```json
+{
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "node",
+      "args": ["server-node/dist/index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
+```
+
+**開発環境（npm dev）**:
+```json
+{
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "npm", 
+      "args": ["run", "dev"],
+      "cwd": "server-node",
+      "env": {
+        "NODE_ENV": "development",
+        "DEBUG": "true"
+      }
+    }
+  }
+}
+```
+
+*このリポジトリに事前ビルド済み設定を提供：*
+- `.qwen/settings.json` - 本番用
+- `.qwen/settings.dev.json` - 開発用
+
+*本番用ビルド: `cd server-node && npm run build`*
+
+### Gemini CLI (MCP設定要)
+
+`~/.gemini/settings.json`を設定：
+
+```json
+{
+  "selectedAuthType": "gemini-api-key",
+  "theme": "Dracula",
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "node",
+      "args": ["/path/to/strudel-mcp/server-node/dist/index.js"],
+      "cwd": "/path/to/strudel-mcp/server-node"
+    }
+  }
+}
+```
+
+*事前ビルド: `cd server-node && npm run build`*
+
+*Gemini CLIで `/mcp` コマンドで確認*
+
+### Claude Desktop (MCP設定要)
+
+Claude Desktop設定：
+
+1. Claude Desktop → 設定 → 開発者 → 設定編集 を開く
+2. `mcpServers`に追加：
+
+```json
+{
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "node",
+      "args": ["/path/to/strudel-mcp/server-node/dist/index.js"],
+      "cwd": "/path/to/strudel-mcp/server-node"
+    }
+  }
+}
+```
+
+3. Claude Desktopを再起動
+4. 新規チャットでツールが利用可能か確認
+
+### GitHub Copilot (MCP設定要)
+
+VS Code + GitHub Copilot (v1.99+)の場合：
+
+1. 設定 → 拡張機能 → GitHub Copilot を開く
+2. 「CopilotのMCPサーバー」ポリシーを有効化
+3. GitHub MCPレジストリまたは手動設定を使用
+
+```json
+{
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "node",
+      "args": ["/path/to/strudel-mcp/server-node/dist/index.js"],
+      "cwd": "/path/to/strudel-mcp/server-node"
+    }
+  }
+}
+```
+
+**注**: `/path/to/strudel-mcp` を実際のリポジトリパスに置換
+
 ## 使用方法 (概要)
 
 1.  **`server-node` サーバーを起動 (推奨)**:
@@ -47,15 +178,10 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
     - フロントエンドは `server-node` または `server-go` サーバーに WebSocket 接続します。
 
 3.  **LLM クライアントから操作**:
-    - LLM クライアント (例: Qwen Code) は、`server-node` サーバーに接続し、MCP プロトコルで通信します。
+    - LLM クライアントは上記設定で `server-node` サーバーに接続し、MCP プロトコルで通信します。
     - `execute_strudel_code` ツールを呼び出して、Strudel コードを実行します。
     - `get_current_pattern` ツールを呼び出して、現在の Strudel コードを取得します。
-    - `describe_pattern` ツールを呼び出して、Strudel コードの内容を自然言語で説明します。
-    - `suggest_modification` ツールを呼び出して、現在のコードを修正する提案を取得します。
-    - `get_strudel_docs` ツールを呼び出して、Context7経由でStrudelの最新ドキュメントを取得します。
-    - `take_page_snapshot` ツールでブラウザのスクリーンショットを撮影します。
-    - `analyze_performance` ツールでページのパフォーマンスを分析します。
-    - `chrome_dev_tools` ツールでChrome DevToolsの各種機能にアクセスします。
+    - `get_strudel_knowledge` ツールを呼び出して、組み込みのStrudelドキュメントを取得します。
 
 ## サーバー選択
 
@@ -86,19 +212,16 @@ go run main.go
 
 ## 利用可能なMCPツール
 
-### 基本機能
+### 核心機能
 - `execute_strudel_code`: Strudelコードを実行
-- `get_current_pattern`: 現在のコードを取得
+- `get_current_pattern`: 現在のパターンを取得
+- `get_strudel_knowledge`: 組み込みStrudelドキュメント・知識ベース
 
-### 機能拡張
-- `describe_pattern`: コードの自然言語説明
-- `suggest_modification`: 修正提案
-- `get_strudel_docs`: Context7経由でドキュメント取得
-
-### 開発・デバッグ機能
-- `take_page_snapshot`: ページのスクリーンショット撮影
-- `analyze_performance`: パフォーマンス分析
-- `chrome_dev_tools`: Chrome DevTools機能アクセス
+#### get_strudel_knowledge 利用可能トピック
+- `basics`: 基本文法、音名、基本操作
+- `patterns`: 高度なパターン構文、ポリリズム
+- `effects`: エフェクト、音色操作
+- `troubleshooting`: よくある問題とLLM向けTips
 
 ## ライセンス
 
