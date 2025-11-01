@@ -14,7 +14,7 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
 
 ## 概要
 
-このプロジェクトには、Node.js で実装された MCP サーバー (`server-node`) と、Go 言語で実装されたレガシー MCP サーバー (`server-go`) があり、現在は Node.js サーバーが推奨されています。また、Web ブラウザ上で動作する Strudel REPL (`frontend`) と連携します。
+このプロジェクトには、Node.js で実装された MCP サーバー (`server-node`) があり、Web ブラウザ上で動作する Strudel REPL (`frontend`) と連携します。
 
 - **`server-node` (Node.jsサーバー - 推奨)**:
     - Node.js + TypeScript で実装された MCP サーバー。
@@ -22,16 +22,12 @@ LLM (大規模言語モデル) が、自然言語で音楽の指示を出すこ�
     - WebSocket を使用して `frontend` と通信します。
     - Express + Jest で構築されています。
 
-- **`server-go` (Goサーバー - レガシー)**:
-    - Go 言語で実装された MCP サーバー。
-    - LLM からのリクエストを処理し、Strudel REPL との通信を担当。
-    - WebSocket を使用して `frontend` と通信します。
-    - `github.com/metoro-io/mcp-golang` ライブラリを使用して実装されています。
-    - 将来的に非推奨（フェーズアウト）される予定です。
+
+    
 
 - **`frontend` (WebベースのStrudel REPL)**:
     - Strudel の Web ベースのライブコーディング環境です。
-    - `server-node` または `server-go` との WebSocket 接続を受け入れ、コードを実行します。
+    - `server-node` との WebSocket 接続を受け入れ、コードを実行します。
     - 現在のコードをサーバーに送信する機能も備えています。
 
 ## インストール方法
@@ -168,14 +164,14 @@ VS Code + GitHub Copilot (v1.99+)の場合：
 
 ## 使用方法 (概要)
 
-1.  **`server-node` サーバーを起動 (推奨)**:
+1.  **`server-node` サーバーを起動**:
     - `server-node` ディレクトリで `npm install` し、`npm run dev` で起動します。
     - サーバーは、標準入出力 (stdio) 経由で LLM クライアントと通信します。
     - 内部で WebSocket サーバーも起動し、`frontend` との通信を待ち受けます。
 
 2.  **Strudel フロントエンドを起動**:
     - `frontend` ディレクトリで、Webベースの Strudel インターフェースを起動します。
-    - フロントエンドは `server-node` または `server-go` サーバーに WebSocket 接続します。
+    - フロントエンドは `server-node` サーバーに WebSocket 接続します。
 
 3.  **LLM クライアントから操作**:
     - LLM クライアントは上記設定で `server-node` サーバーに接続し、MCP プロトコルで通信します。
@@ -185,26 +181,20 @@ VS Code + GitHub Copilot (v1.99+)の場合：
 
 ## サーバー選択
 
-**Node.js サーバー (推奨)**
+**Node.js サーバー**
 ```bash
 cd server-node
 npm install
 npm run dev
 ```
 
-**Go サーバー (レガシー - 将来的にフェーズアウト予定)**
-```bash
-cd server-go
-go run main.go
-```
+
 
 ## ディレクトリ構造
 
 - `server-node/`: Node.js + TypeScript によるサーバー実装
   - `src/index.ts` 等: MCPサーバーのメイン実装（TypeScript）
-- `server-go/`: Go によるレガシーサーバー実装
-  - `main.go`: Go MCPサーバーの実装
-  - `websocket_server.go`: Go WebSocketサーバーの実装
+
 - `frontend/`: Webフロントエンド実装（ブラウザベースのインターフェース）
 - `source_of_strudel/`: 元の Strudel ソースコード参照 (git submodule)
 - `my/`: プロジェクトのメタ情報やタスク管理用

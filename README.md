@@ -22,22 +22,16 @@ Strudel MCP allows Large Language Models (LLMs) to:
 
 ### Server Options
 
-**Node.js (Recommended - NEW)**
+**Node.js Server**
 ```bash
 cd server-node
 npm install
 npm run dev
 ```
 
-**Go (Legacy - Phase-out planned)**
-```bash
-cd server-go
-go run main.go
-```
-
 ### Components
 
-- **strudel-mcp (Go)**: MCP server with WebSocket communication
+- **strudel-mcp (Node.js)**: MCP server with WebSocket communication
 - **WebSocket Server**: Handles bidirectional communication between MCP and Strudel
 - **Frontend**: Web-based Strudel interface with synchronization capabilities
 - **Context7 Integration**: External documentation service for Strudel docs
@@ -52,7 +46,6 @@ This project is based on and inspired by the original Strudel project:
 
 **Note**: 
 - The `source_of_strudel/` directory was cloned from [https://codeberg.org/uzu/strudel](https://codeberg.org/uzu/strudel) on 2025-10-12 for development reference.
-- The `strudel-repl/` directory contained a reference Strudel implementation copied on 2025-10-15.
 - Both directories were local development references and are **not** included in this GitHub repository.
 
 ### License
@@ -98,7 +91,7 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
    cd ..
    ```
 
-4. **Start the servers** (recommended - Node.js):
+4. **Start the servers**:
    ```bash
    # Terminal 1: Start MCP + WebSocket server
    cd server-node
@@ -109,11 +102,7 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
    npm run dev
    ```
    
-   Or use the legacy Go server:
-   ```bash
-   cd server-go
-   go run main.go websocket_server.go
-   ```
+   
 
 ### Usage with LLM
 
@@ -230,7 +219,7 @@ In VS Code with GitHub Copilot (v1.99+):
 ### Project Structure
 ```
 strudel-mcp/
-├── server-node/               # Node.js MCP server (recommended)
+├── server-node/               # Node.js MCP server
 │   ├── src/
 │   │   ├── index.ts          # Main server entry
 │   │   ├── mcp/              # MCP protocol handlers
@@ -238,9 +227,6 @@ strudel-mcp/
 │   │   └── utils/            # Utilities (logger, config)
 │   ├── package.json          # Dependencies
 │   └── tsconfig.json         # TypeScript config
-├── server-go/                 # Legacy Go server
-│   ├── main.go               # Go MCP implementation
-│   └── websocket_server.go   # Go WebSocket server
 ├── frontend/                  # Web-based Strudel interface
 │   ├── src/
 │   │   ├── main.js           # Main frontend application
@@ -252,8 +238,7 @@ strudel-mcp/
 ```
 
 ### Key Technologies
-- **Backend (Node.js)**: TypeScript + Express + @modelcontextprotocol/sdk
-- **Backend (Go)**: Go with `github.com/metoro-io/mcp-golang` (legacy)
+- **Backend**: TypeScript + Express + @modelcontextprotocol/sdk
 - **Frontend**: Vanilla JavaScript with Vite
 - **Communication**: WebSocket protocol
 - **Synchronization**: BroadcastChannel API
@@ -331,7 +316,7 @@ Built-in Strudel documentation
 1. **WebSocket Connection Failed**
    - Ensure port 8081 is available
    - Check firewall settings
-   - Verify both servers are running
+   - Verify server and frontend are running
 
 2. **Audio Not Playing**
    - Check browser audio permissions
@@ -344,7 +329,7 @@ Built-in Strudel documentation
    - Ensure stdio communication is working
 
 ### Logging
-- Go server logs: Console output
+- Server logs: Console output
 - Frontend logs: Browser developer console
 - WebSocket logs: Server console with verbose mode
 
