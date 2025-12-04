@@ -1,52 +1,56 @@
-import { WebSocketServer } from 'ws'
-import { EventEmitter } from 'events'
-import { v4 as uuidv4 } from 'uuid'
-import { logger } from '../utils/logger.ts'
+import { WebSocketServer, WebSocket } from 'ws';
 
-export class WebSocketManager extends EventEmitter {
-  private wss: WebSocketServer
-  private clients: Map<string, any> = new Map()
+export class WebSocketManager {
+  private wss: WebSocketServer | null = null;
+  private clients: Set<WebSocket> = new Set();
+  private port: number;
 
-  constructor(server: any) {
-    super()
-    this.wss = new WebSocketServer({ server })
-    this.setupHandler()
+  constructor(port: number = 8081) {
+    this.port = port;
   }
 
-  private setupHandler() {
-    this.wss.on('connection', (ws) => {
-      const clientId = uuidv4()
-      this.clients.set(clientId, ws)
+  start() {
+    this.wss = new WebSocketServer({ port: this.port });
 
-      ws.on('message', (data: string) => {
-        this.emit('message', ws, data.toString(), clientId)
-      })
+    this.wss.on('connection', (ws: WebSocket, req) => {
+      const type = new URL(req.url!, `http://localhost`).searchParams.get('type');
+      console.log(`[WebSocket] Client connected (type: ${type || 'unknown'})`);
+
+      this.clients.add(ws);
+
+      ws.on('message', (data) => {
+        const message = data.toString();
+        console.log(`[WebSocket] Received: ${message}`);
+
+        // Echo back or handle specific commands
+        if (message === 'ping') {
+          ws.send('pong');
+        }
+      });
 
       ws.on('close', () => {
-        this.clients.delete(clientId)
-        this.emit('disconnect', clientId)
-      })
+        console.log('[WebSocket] Client disconnected');
+        this.clients.delete(ws);
+      });
 
       ws.on('error', (error) => {
-        logger.error(`WebSocket error (${clientId}):`, error)
-      })
+        console.error('[WebSocket] Error:', error);
+      });
+    });
 
-      this.emit('connect', ws, clientId)
-    })
+    console.log(`[WebSocket] Server listening on ws://localhost:${this.port}`);
   }
 
   broadcast(message: string) {
-    this.clients.forEach((ws) => {
-      if (ws.readyState === 1) {
-        ws.send(message)
+    this.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
       }
-    })
+    });
   }
 
-  send(clientId: string, message: string) {
-    const ws = this.clients.get(clientId)
-    if (ws && ws.readyState === 1) {
-      ws.send(message)
-    }
+  stop() {
+    this.clients.forEach(client => client.close());
+    this.wss?.close();
   }
 }

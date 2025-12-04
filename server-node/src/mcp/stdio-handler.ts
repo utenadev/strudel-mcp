@@ -1,56 +1,108 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
-import { ToolDefinitions, ToolImplementations } from './tools';
+import {
+    ListToolsRequestSchema,
+    CallToolRequestSchema
+} from '@modelcontextprotocol/sdk/types.js';
+import type { WebSocketManager } from '../websocket/manager';
 
-export async function startMCPStdioServer() {
-  const server = new Server({
-    name: 'strudel-mcp-node',
-    version: '1.0.0',
-  });
-
-  // サーバー情報
-  const serverInfo = { name: 'strudel-mcp-node', version: '1.0.0' };
-  
-  // イベントハンドラーを設定
-  server.setRequestHandler('initialize', async (params: any) => {
-    return {
-      capabilities: {
-        tools: {},
-      },
-      serverInfo,
-    };
-  });
-
-  server.setRequestHandler('tools/list', async () => {
-    return {
-      tools: ToolDefinitions,
-    };
-  });
-
-  server.setRequestHandler('tools/call', async (params: any) => {
-    try {
-      const { name, arguments: args } = params.params;
-      const toolImpl = ToolImplementations.find(impl => impl.name === name);
-      if (!toolImpl) {
-        throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
-      }
-      // @ts-ignore: callメソッドの型が不明確な場合
-      return await toolImpl.call(args);
-    } catch (e: any) {
-      if (e instanceof McpError) {
-        return e;
-      }
-      return new McpError(ErrorCode.InternalError, e.message);
+// Tool definitions and implementations
+const ToolDefinitions = [
+    {
+        name: 'execute_strudel_code',
+        description: 'Execute Strudel pattern code and send to frontend',
+        inputSchema: {
+            type: 'object' as const,
+            properties: {
+                code: {
+                    type: 'string' as const,
+                    description: 'Strudel pattern code to execute'
+                }
+            },
+            required: ['code']
+        }
     }
-  });
-  await server.connect(new StdioServerTransport());
+];
+
+// WebSocket manager reference (injected from index.ts)
+let wsManager: WebSocketManager | null = null;
+
+export function setWebSocketManager(manager: WebSocketManager) {
+    wsManager = manager;
 }
 
-// 直接実行された場合にサーバーを起動
+async function executeStrudelCode(code: string) {
+    console.log(`[MCP] Executing Strudel code: ${code}`);
+
+    // Broadcast to all connected frontends via WebSocket
+    if (wsManager) {
+        wsManager.broadcast(code);
+    }
+
+    return {
+        status: 'executed',
+        pattern: code,
+        timestamp: new Date().toISOString(),
+        broadcasted: !!wsManager
+    };
+}
+
+export async function startMCPStdioServer() {
+    const server = new Server({
+        name: 'strudel-mcp',
+        version: '2.0.0',
+    }, {
+        capabilities: {
+            tools: {}
+        }
+    });
+
+    // Tools list handler
+    server.setRequestHandler(ListToolsRequestSchema, async () => {
+        return {
+            tools: ToolDefinitions
+        };
+    });
+
+    // Tools call handler
+    server.setRequestHandler(CallToolRequestSchema, async (request) => {
+        try {
+            const { name, arguments: args } = request.params;
+
+            if (name === 'execute_strudel_code') {
+                const code = (args as any)?.code;
+                if (typeof code !== 'string') {
+                    throw new McpError(ErrorCode.InvalidParams, 'code parameter must be a string');
+                }
+                const result = await executeStrudelCode(code);
+                return {
+                    content: [
+                        {
+                            type: 'text' as const,
+                            text: JSON.stringify(result, null, 2)
+                        }
+                    ]
+                };
+            }
+
+            throw new McpError(ErrorCode.MethodNotFound, `Tool not found: ${name}`);
+        } catch (error: any) {
+            if (error instanceof McpError) {
+                throw error;
+            }
+            throw new McpError(ErrorCode.InternalError, error.message);
+        }
+    });
+
+    await server.connect(new StdioServerTransport());
+    console.error('[MCP] Server started on stdio');
+}
+
+// Direct execution
 if (import.meta.url === `file://${process.argv[1]}`) {
-  startMCPStdioServer().catch((error) => {
-    console.error("Server error:", error);
-    process.exit(1);
-  });
+    startMCPStdioServer().catch((error) => {
+        console.error("Server error:", error);
+        process.exit(1);
+    });
 }

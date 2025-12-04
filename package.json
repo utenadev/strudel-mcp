@@ -1,0 +1,9 @@
+{
+    "name": "strudel-mcp-monorepo",
+    "private": true,
+    "workspaces": [
+        "frontend",
+        "server-node",
+        "source_of_strudel/packages/*"
+    ]
+}
