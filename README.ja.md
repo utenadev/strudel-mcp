@@ -1,142 +1,174 @@
-# Strudel MCP - 刷新版 (Bun + TypeScript)
+# Strudel MCP - Model Context Protocol Integration for Strudel
 
-## プロジェクト概要
-LLMが自然言語から音楽パターンを生成し、ブラウザ上のStrudelエンジンで演奏するMCPサーバーシステム。
+LLMがStrudelパターンを生成・実行できるMCPサーバーシステム
+
+## 概要
+
+Strudel MCPは、Large Language Models (LLM) が [Strudel](https://strudel.cc/) - ライブコーディング音楽のためのJavaScriptライブラリ - と連携できるようにします。
+
+- 自然言語コマンドでStrudelパターンを実行
+- 現在のパターン状態を取得
+- Context7統合によるStrudelドキュメント参照
+- ジャンル別プリセット（Jazz, EDM, Synth-pop, Ambient, Hip-hop）
 
 ## アーキテクチャ
 
-### バックエンド (`server-node`)
-- **ランタイム**: Bun + TypeScript
-- **役割**:
-  - LLMとのMCP通信 (Stdio)
-  - WebSocketサーバー (ポート8081)
-  - フロントエンドへのパターン配信
-
-### フロントエンド (`frontend`)
-- **スタック**: Vite + React + TypeScript
-- **役割**:
-  - WebSocket経由でパターンを受信
-  - Strudelパターンの表示
-  - (次フェーズ) Strudel エンジン統合で音楽再生
-
-## セットアップ
-
-### 1. 依存関係のインストール
-```bash
-# ルートディレ clitorytで一括インストール
-bun install
+```
+┌─────────────┐    MCP     ┌──────────────┐    WebSocket    ┌─────────────┐
+│   LLM       │ ◄──────► │ strudel-mcp  │ ◄─────────────► │  Strudel    │
+│  (Qwen/     │  Protocol │   Server     │   Communication │  Frontend   │
+│  Gemini)    │           │ (Node.js)    │                 │  (React)    │
+└─────────────┘           └──────────────┘                 └─────────────┘
 ```
 
-### 2. サーバービルド
+### コンポーネント
+
+- **server-node**: MCP + WebSocketサーバー (Bun/TypeScript)
+- **frontend**: React + TypeScript + Vite ベースのWebアプリ
+- **Strudel統合**: @strudel/core, @strudel/webaudio, @strudel/transpiler
+
+## クイックスタート
+
+### 必須要件
+- Node.js (>=18) または Bun (>=1.0)
+- WebSocket/Web Audio API対応ブラウザ
+
+### インストール
+
 ```bash
+# リポジトリをクローン
+git clone https://github.com/utenadev/strudel-mcp.git
+cd strudel-mcp
+
+# サーバー依存関係をインストール
 cd server-node
-bun run build
-```
+bun install  # または npm install
+cd ..
 
-### 3. フロントエンドビルド
-```bash
+# フロントエンド依存関係をインストール
 cd frontend
-bun run build
+bun install  # または npm install
+cd ..
 ```
 
-## 実行方法
+### 実行
 
-### 開発Mode
 ```bash
-# サーバー起動 (別ターミナル)
+# ターミナル1: サーバー起動
 cd server-node
 bun run dev
 
-# フロントエンド起動 (別ターミナル)
+# ターミナル2: フロントエンド起動
 cd frontend
 bun run dev
 ```
 
-### 本番Mode
-```bash
-# サーバー起動
-cd server-node
-bun run start
+### テスト
 
-# フロントエンドはdistをホスティング
+```bash
 cd frontend
-bun run preview
+bun run test  # 23テスト
 ```
 
-## MCP利用方法
+## 機能
 
-### Gemini CLI設定
-`~/.gemini/settings.json` に追加:
+### ローカルStrudel再生
+- **iframe不要** - Web Audio APIで直接再生
+- useStrudelフック（初期化、評価、再生、停止）
+- WebSocket経由でLLMからパターンを自動受信・再生
+
+### ジャンル別プリセット
+
+| ジャンル | プリセット例 |
+|---------|-------------|
+| Jazz | Swing Groove, Jazz Ballad, Bebop Run |
+| EDM | House Beat, Dubstep Drop, Trance Arp |
+| Synth-pop | Retro Synth, New Wave |
+| Ambient | Ambient Drone, Texture Pad |
+| Hip-hop | Boom Bap, Trap Beat |
+
+### MCPツール
+
+- `execute_strudel_code` - Strudelパターンを実行
+- `get_current_pattern` - 現在のパターンを取得
+- `get_strudel_knowledge` - Strudelドキュメント参照
+
+## プロジェクト構造
+
+```
+strudel-mcp/
+├── server-node/               # Node.js MCPサーバー
+│   ├── src/
+│   │   ├── index.ts          # メインエントリ
+│   │   ├── mcp/              # MCPプロトコルハンドラ
+│   │   ├── websocket/        # WebSocketマネージャー
+│   │   └── utils/            # ユーティリティ
+│   ├── test/                 # サーバーテスト
+│   └── package.json
+├── frontend/                  # Reactフロントエンド
+│   ├── src/
+│   │   ├── App.tsx           # メインコンポーネント
+│   │   ├── hooks/            # React hooks (useStrudel, useWebSocket)
+│   │   ├── presets/          # ジャンル別プリセット
+│   │   ├── types/            # TypeScript型定義
+│   │   └── test/             # フロントエンドテスト
+│   ├── vitest.config.ts
+│   └── package.json
+├── docs/                      # ドキュメント
+└── source_of_strudel/         # Strudelソース参照 (git submodule)
+```
+
+## 技術スタック
+
+- **バックエンド**: TypeScript + Express + @modelcontextprotocol/sdk
+- **フロントエンド**: React + TypeScript + Vite
+- **オーディオ**: Strudelパッケージ (@strudel/core, @strudel/webaudio, @strudel/transpiler)
+- **通信**: WebSocketプロトコル
+- **テスト**: Vitest + React Testing Library
+
+## LLM設定
+
+### Gemini CLI
+
+`~/.gemini/settings.json`:
 ```json
 {
   "mcpServers": {
     "strudel-mcp": {
       "command": "bun",
-      "args": ["run", "C:/workspace/strudel-mcp/server-node/dist/index.js"],
-      "cwd": "C:/workspace/strudel-mcp/server-node"
+      "args": ["run", "dist/index.js"],
+      "cwd": "/path/to/strudel-mcp/server-node"
     }
   }
 }
 ```
 
-### 利用可能ツール
-- `execute_strudel_code`: Strudelパターンを実行し、WebSocket経由でフロントエンドに送信
+### Claude Desktop / Qwen
 
-### 使用例
-```
-LLM: "4beatのJazz風ドラムパターンを作って"
-→ MCP toolが呼ばれ、Strudelコードが生成される
-→ WebSocket経由でフロントエンドに送信
-→ (将来) ブラウザで自動再生
-```
-
-## 現在の実装状況
-
-### ✅ 完了
-- [x] Bun + TypeScriptへの移行
-- [x] MCP Server (stdio) の実装
-- [x] WebSocketサーバーの実装
-- [x] Reactフロントエンドの基本構造
-- [x] WebSocket接続とパターン受信
-- [x] プレミアムUIデザイン
-
-### 🚧 次のステップ (Strudel エンジン本格統合)
-- [ ] Strudelパッケージのビルド問題解決
-- [ ] `@strudel/transpiler` でコードをコンパイル
-- [ ] `@strudel/webaudio` で音声再生
-- [ ] サンプルライブラリのロード (piano, drums, etc.)
-- [ ] ジャンル別レシピの追加 (Jazz, EDM, Synth Pop)
-
-## ディレクトリ構造
-```
-strudel-mcp/
-├── server-node/          # MCP + WebSocketサーバー (Bun)
-│   ├── src/
-│   │   ├── index.ts      # エントリーポイント
-│   │   ├── mcp/          # MCPサーバー実装
-│   │   └── websocket/    # WebSocketマネージャー
-│   └── dist/             # ビルド成果物
-├── frontend/             # Webフロントエンド (Vite + React)
-│   ├── src/
-│   │   ├── App.tsx       # メインコンポーネント
-│   │   └── App.css       # スタイル
-│   └── dist/             # ビルド成果物
-├── source_of_strudel/    # Strudelソースコード (submodule)
-└── package.json          # ワークスペース設定
+```json
+{
+  "mcpServers": {
+    "strudel-mcp": {
+      "command": "node",
+      "args": ["/path/to/strudel-mcp/server-node/dist/index.js"],
+      "cwd": "/path/to/strudel-mcp/server-node"
+    }
+  }
+}
 ```
 
 ## トラブルシューティング
 
-### Strudelビルドエラー
-現在、Strudelの一部パッケージに依存関係の問題があります。
-次フェーズで以下のアプローチを検討:
-1. Strudelをnpmパッケージから直接インストール
-2. 必要な機能のみを抽出して再実装
-3. Strudel公式REPLをiframe統合
-
 ### WebSocket接続エラー
-- サーバーが起動しているか確認: `bun run dev` (in server-node)
-- ポート8081が空いているか確認
+- サーバーが起動しているか確認
+- ポート8081が使用可能か確認
+- ファイアウォール設定を確認
+
+### オーディオが再生されない
+- ブラウザのオーディオ権限を確認
+- ページをクリックしてオーディオコンテキストを初期化
+- Web Audio API対応ブラウザを使用
 
 ## ライセンス
-このプロジェクトのライセンスは、Strudel のライセンスに準拠します。
+
+このプロジェクトはAGPL-3.0ライセンスの下で提供されます（Strudelプロジェクトと同様）。
