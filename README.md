@@ -66,8 +66,8 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
 ## Quick Start
 
 ### Prerequisites
-- Node.js (>=18)
-- Modern browser with WebSocket support
+- Node.js (>=18) or Bun (>=1.0)
+- Modern browser with WebSocket and Web Audio API support
 
 ### Installation
 
@@ -77,17 +77,17 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
    cd strudel-mcp
    ```
 
-2. **Install Node.js dependencies**:
+2. **Install server dependencies**:
    ```bash
    cd server-node
-   npm install
+   bun install  # or npm install
    cd ..
    ```
 
 3. **Install frontend dependencies**:
    ```bash
    cd frontend
-   npm install
+   bun install  # or npm install
    cd ..
    ```
 
@@ -95,13 +95,18 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
    ```bash
    # Terminal 1: Start MCP + WebSocket server
    cd server-node
-   npm run dev
+   bun run dev  # or npm run dev
    
    # Terminal 2: Start frontend
    cd frontend
-   npm run dev
+   bun run dev  # or npm run dev
    ```
-   
+
+5. **Run tests**:
+   ```bash
+   cd frontend
+   bun run test  # 23 tests
+   ```
    
 
 ### Usage with LLM
@@ -225,13 +230,18 @@ strudel-mcp/
 │   │   ├── mcp/              # MCP protocol handlers
 │   │   ├── websocket/        # WebSocket manager
 │   │   └── utils/            # Utilities (logger, config)
+│   ├── test/                 # Server tests
 │   ├── package.json          # Dependencies
 │   └── tsconfig.json         # TypeScript config
-├── frontend/                  # Web-based Strudel interface
+├── frontend/                  # React-based Strudel interface
 │   ├── src/
-│   │   ├── main.js           # Main frontend application
-│   │   └── style.css         # Styling
-│   └── package.json
+│   │   ├── App.tsx           # Main application component
+│   │   ├── hooks/            # React hooks (useStrudel, useWebSocket)
+│   │   ├── presets/          # Genre-based pattern presets
+│   │   ├── types/            # TypeScript type declarations
+│   │   └── test/             # Frontend tests
+│   ├── package.json          # Dependencies
+│   └── vitest.config.ts      # Test configuration
 ├── docs/                      # Documentation
 ├── source_of_strudel/         # Strudel source reference (git submodule)
 └── images/                    # Screenshots and assets
@@ -239,10 +249,10 @@ strudel-mcp/
 
 ### Key Technologies
 - **Backend**: TypeScript + Express + @modelcontextprotocol/sdk
-- **Frontend**: Vanilla JavaScript with Vite
+- **Frontend**: React + TypeScript + Vite
+- **Audio**: Strudel packages (@strudel/core, @strudel/webaudio, @strudel/transpiler)
 - **Communication**: WebSocket protocol
-- **Synchronization**: BroadcastChannel API
-- **Audio**: Web Audio API
+- **Testing**: Vitest + React Testing Library
 
 ## Contributing
 
