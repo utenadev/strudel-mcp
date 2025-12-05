@@ -143,9 +143,7 @@ describe('PatternExportManager', () => {
     });
 
     it('should throw error for invalid JSON', async () => {
-      await expect(async () => {
-        await exportManager.importPatternFromJson('invalid json');
-      }).rejects.toThrow('Failed to import pattern');
+      await expect(exportManager.importPatternFromJson('invalid json')).rejects.toThrow('Failed to import pattern');
     });
 
     it('should throw error for missing pattern field', async () => {
@@ -155,9 +153,7 @@ describe('PatternExportManager', () => {
         }
       });
 
-      await expect(async () => {
-        await exportManager.importPatternFromJson(jsonData);
-      }).rejects.toThrow('Invalid pattern data: missing or invalid pattern field');
+      await expect(exportManager.importPatternFromJson(jsonData)).rejects.toThrow('Invalid pattern data: missing or invalid pattern field');
     });
   });
 
@@ -190,9 +186,7 @@ describe('PatternExportManager', () => {
     it('should throw error for invalid Strudel pattern', async () => {
       const invalidPattern = "invalid content";
 
-      await expect(async () => {
-        await exportManager.importPatternFromStrudel(invalidPattern);
-      }).rejects.toThrow('Invalid Strudel pattern: missing s() or note() function');
+      await expect(exportManager.importPatternFromStrudel(invalidPattern)).rejects.toThrow('Invalid Strudel pattern: missing s() or note() function');
     });
   });
 
