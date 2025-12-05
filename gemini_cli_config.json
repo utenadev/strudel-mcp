@@ -1,0 +1,32 @@
+{
+  "system_prompts": {},
+  "safety_settings": [
+    {
+      "category": "HARM_CATEGORY_HARASSMENT",
+      "threshold": "LOW"
+    },
+    {
+      "category": "HARM_CATEGORY_HATE_SPEECH",
+      "threshold": "LOW"
+    },
+    {
+      "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+      "threshold": "LOW"
+    },
+    {
+      "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+      "threshold": "LOW"
+    }
+  ],
+  "tools": [
+    {
+      "name": "GOOGLE_SEARCH",
+      "enabled": true
+    },
+    {
+      "name": "URL_CONTEXT",
+      "enabled": true
+    }
+  ],
+  "history": {}
+}

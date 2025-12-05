@@ -1,0 +1,401 @@
+bun test v1.3.3 (274e01c7)
+
+test\concurrency.test.ts:
+[WebSocket] Server listening on ws://localhost:8081
+Executing Strudel code: s("bd hh sd oh")
+[32minfo[39m: Pattern added to history {"changeType":"create","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"d88c4fe7-9064-4332-9954-daf96f9928bc","patternLength":16,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.886Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh").fast(2)
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"6bbb9e0c-b9db-4a5a-b984-b5f59aa26539","patternLength":18,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.889Z","version":"1.0.0"}
+Executing Strudel code: s("sd oh").slow(2)
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"28679d8f-33da-4099-a3e7-33034404fe4f","patternLength":18,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.889Z","version":"1.0.0"}
+Executing Strudel code: s("bd").fast(4)
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"1a8ddf9f-e3b4-437d-af84-e95b1277affd","patternLength":15,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.889Z","version":"1.0.0"}
+(pass) Concurrency Testing > Simultaneous Code Execution > should handle concurrent code execution [16.00ms]
+[WebSocket] Server listening on ws://localhost:8081
+Executing Strudel code: s("bd hh sd oh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"a41fa181-1ff3-4801-b993-0f49ceb2554e","patternLength":16,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.891Z","version":"1.0.0"}
+Executing Strudel code: invalid syntax {{{
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"b18cac18-bc7c-4bd0-9e6b-9b5b58d340bb","patternLength":18,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.891Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh").fast(2)
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"b1613f37-6765-40c6-8217-ff4e9dd3c232","patternLength":18,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.891Z","version":"1.0.0"}
+Executing Strudel code: require("fs")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"251e3051-2ebe-4ed0-b5fc-d7e9894e35a9","patternLength":13,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.892Z","version":"1.0.0"}
+Executing Strudel code: s("sd oh").slow(2)
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"51d841a8-1e23-4dae-9a57-b1dca5b96926","patternLength":18,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.892Z","version":"1.0.0"}
+63 | 
+64 |       results.forEach(({ index, code, result }) => {
+65 |         expect(result).toBeDefined()
+66 | 
+67 |         if (code.includes('invalid') || code.includes('require')) {
+68 |           expect(result.status).toBe('error')
+                                     ^
+error: expect(received).toBe(expected)
+
+Expected: "error"
+Received: "executed"
+
+      at <anonymous> (C:\workspace\strudel-mcp\server-node\test\concurrency.test.ts:68:33)
+      at forEach (1:11)
+      at <anonymous> (C:\workspace\strudel-mcp\server-node\test\concurrency.test.ts:64:15)
+(fail) Concurrency Testing > Simultaneous Code Execution > should handle mixed valid/invalid concurrent execution
+[WebSocket] Server listening on ws://localhost:8081
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"0b4f431b-0058-4283-8511-ffca324c96cb","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.893Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"d71f159b-b161-46ce-a331-2b4418097933","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.893Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"2249ca2f-cefa-4ec9-a1c9-2d044b281c0f","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.893Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"2c0d3bb5-fd30-42a2-943a-eeee7ddbb79f","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.893Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"a58b4ca9-2edc-459d-a775-ee4360912771","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.894Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"38053fb9-4e6a-44ab-a303-a793edb264c1","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.894Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"ede12f26-7d7d-43c1-af05-47ac8e2d2d89","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.894Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"60094c81-b098-4712-a389-834464bae49f","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.894Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"02424df3-b61b-4602-88e5-6c35046fa669","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.894Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"0590e81b-920e-4566-ad3b-26f384a08da0","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.895Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"f344ff90-81dc-4497-be2e-54da5257a78a","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.895Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"acf6adf2-87c5-4a68-b1e9-d1549a67b696","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.895Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"7fc4327c-481b-4ad0-bc9d-a4710fd9e197","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.895Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"fdf7a046-78c3-4553-8da3-14566f26572b","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.896Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"9a69dff3-c23e-42ae-82c0-75e2ef76a186","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.896Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"7c33ff84-2b7d-4600-bd82-112733c3601e","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.896Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"8e583940-8913-47ed-9bab-eaac2c0ae4c4","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.896Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"d073b869-a296-44c3-ae4a-c030b1f9cfe7","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.896Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"a3b7e97d-e80e-4462-a3c0-90692e6b20fc","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.896Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"d204cbf2-065e-4991-bde9-d4420ee97941","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.896Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"e4666cd6-923c-4f68-87dd-eb1ccb4871e2","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.897Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"9f827508-206c-44b3-b9d0-05e94110b69b","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.897Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"2874ca36-eaf5-4949-8db8-bbf7f8839f5a","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.897Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"7d435fd8-0037-46ee-99c0-0bd10b2f30b6","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.897Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"f837b53c-8e3b-415b-a389-e639319e7d9d","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.897Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"50678e37-324a-4aae-877b-0c19a414ae34","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.897Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"ea6b257f-4dd8-4a08-a790-fcbb91fadfba","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.898Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"f587f924-8585-4d2a-b353-61d9c6ea272d","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.898Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"4d2daa5c-633d-4eda-948d-a7ec4850f55f","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.898Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"cceb4d9c-2d8c-48be-ba25-543a9a93df7b","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.898Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"ded69f5c-051b-413b-87e1-70fac02c34a6","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.898Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"97f655a4-77c8-46d6-9a09-7b639fe922a4","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.898Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"fdaf5ab0-1ab3-4930-b107-6d9b74e3def3","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.898Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"598ad377-46cb-456d-bd65-d406d8ff8818","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"aac462eb-0869-4ae8-ace7-836979af5ab9","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"592cf54f-0883-4244-b87c-6b8b0524869a","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"11c33d03-fe95-4e33-8801-d5900da01575","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"55d5f95a-7766-40fa-97b2-e4c43bed3747","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"932de2f6-2a53-4413-9d17-a4c771f75f2c","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"f9362703-2ea7-4afc-9067-aef11fbce8cb","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"363279f4-6b40-4d76-8961-b149486f4f31","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"93979a92-483a-4e1e-bb8c-1d66735d0d2f","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"51819698-34a3-4427-8783-a901f38d00ac","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.899Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"b8c06bb0-35a8-4d23-94cb-6821a6304770","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.900Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"badd19d4-349b-4088-a119-db2f7d4e599e","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.900Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"6cdb7153-b946-4d23-a48b-839b7da6f2fd","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.900Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"e85082fc-02e5-46d3-8e17-65d94bcb63b8","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.900Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"0cb70d90-09ee-4191-b35f-8892d8d34aa4","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.900Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"5228d0db-674f-4cb8-a31a-72b60b5d1643","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.900Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"fc8e7b85-a41d-4e99-8683-f7f58a2a449f","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:04.901Z","version":"1.0.0"}
+(pass) Concurrency Testing > Simultaneous Code Execution > should handle rapid sequential execution [15.00ms]
+[WebSocket] Server listening on ws://localhost:8081
+[WebSocket] Client connected (id: client-0, type: test)
+[WebSocket] Client connected (id: client-1, type: test)
+[WebSocket] Client connected (id: client-2, type: test)
+[WebSocket] Client connected (id: client-3, type: test)
+[WebSocket] Client connected (id: client-4, type: test)
+[WebSocket] Client connected (id: client-5, type: test)
+[WebSocket] Client connected (id: client-6, type: test)
+[WebSocket] Client connected (id: client-7, type: test)
+[WebSocket] Client connected (id: client-8, type: test)
+[WebSocket] Client connected (id: client-9, type: test)
+[WebSocket] Client connected (id: client-10, type: test)
+[WebSocket] Client connected (id: client-11, type: test)
+[WebSocket] Client connected (id: client-12, type: test)
+[WebSocket] Client connected (id: client-13, type: test)
+[WebSocket] Client connected (id: client-14, type: test)
+[WebSocket] Client connected (id: client-15, type: test)
+[WebSocket] Client connected (id: client-16, type: test)
+[WebSocket] Client connected (id: client-17, type: test)
+[WebSocket] Client connected (id: client-18, type: test)
+[WebSocket] Client connected (id: client-19, type: test)
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"020ab973-73d8-4079-9e81-0fc8b2c5d78c","timestamp":"2025-12-05T14:46:04.903Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"038d51a5-1d4e-4c9c-b6f5-8e2fcd93ec91","timestamp":"2025-12-05T14:46:04.904Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"0f86c643-8c90-4e94-8342-ee610c6ef00a","timestamp":"2025-12-05T14:46:04.904Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"15f20fd4-ece9-440c-bbb6-1b90e9000d7b","timestamp":"2025-12-05T14:46:04.905Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"1608b202-2f59-41a0-889a-ba13a49a49b2","timestamp":"2025-12-05T14:46:04.905Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"207c0e32-7271-48bb-8614-94f534f74514","timestamp":"2025-12-05T14:46:04.906Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"26a650ce-11a2-4c06-a51e-880921318259","timestamp":"2025-12-05T14:46:04.906Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"33c75f54-6c40-4919-bf94-546e461d633d","timestamp":"2025-12-05T14:46:04.906Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"33db90d3-5b67-4020-bedc-d1bc8c68c2ec","timestamp":"2025-12-05T14:46:04.907Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"41b7b48f-6bb0-4150-a0e4-e9d7d11e428f","timestamp":"2025-12-05T14:46:04.907Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"469067b3-1a31-4b74-b238-e22e0f8bb60f","timestamp":"2025-12-05T14:46:04.907Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"46cff1d3-32b7-4361-90dc-1dee352c2fb3","timestamp":"2025-12-05T14:46:04.908Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"49056b4e-54df-4d01-b56b-cdf17b7eb9d1","timestamp":"2025-12-05T14:46:04.908Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"509835dd-e7df-4551-a810-7738776e82ea","timestamp":"2025-12-05T14:46:04.908Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"59d4f34d-9e5e-41a9-85d1-117716aa6753","timestamp":"2025-12-05T14:46:04.908Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"5fbe39bb-cad4-4b0b-86ba-ab298e77f6a7","timestamp":"2025-12-05T14:46:04.909Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"6057be0d-8fd9-42a7-943b-cc3578dbebf2","timestamp":"2025-12-05T14:46:04.909Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"63698018-0660-42b9-9cc6-7149d104e223","timestamp":"2025-12-05T14:46:04.910Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"660cfa6d-4987-4b08-ae0b-a913f6b5bb1b","timestamp":"2025-12-05T14:46:04.911Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"695aa078-5310-43ea-ad3e-cc4c968cf09b","timestamp":"2025-12-05T14:46:04.911Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"6eb40aed-40ad-44ef-8f21-cb63485596bb","timestamp":"2025-12-05T14:46:04.912Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"7600753c-b426-4f2e-99d0-1d637111bc0a","timestamp":"2025-12-05T14:46:04.912Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"78d084e0-8f54-4818-ac0a-374b4c7d9615","timestamp":"2025-12-05T14:46:04.912Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"793a14b7-a03a-435d-8fb5-de728e6a35dd","timestamp":"2025-12-05T14:46:04.913Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"7e1587a4-5af0-4b1d-889c-ec3522fe0b7c","timestamp":"2025-12-05T14:46:04.913Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"7e262710-d3ec-40ff-b84c-f720bf6065cc","timestamp":"2025-12-05T14:46:04.913Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"811cdab6-9ef2-41d9-b096-dd37922489a1","timestamp":"2025-12-05T14:46:04.914Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"86f3f1a4-7858-4c55-96c4-b3f5249b5ee8","timestamp":"2025-12-05T14:46:04.914Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"8dbddd4f-7f65-468d-bc21-17028a1cdbe0","timestamp":"2025-12-05T14:46:04.914Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"91d01e44-954b-4404-b797-3be1904d5d94","timestamp":"2025-12-05T14:46:04.914Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"9aa7f173-2860-46cb-8583-773f9cbb44da","timestamp":"2025-12-05T14:46:04.915Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"9b77a7a8-a7f9-4a02-88de-d4ceea76fbcd","timestamp":"2025-12-05T14:46:04.915Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"9c4d0088-5fb3-4a0e-ad88-68a070709ab6","timestamp":"2025-12-05T14:46:04.915Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"a70884d7-5b2f-4227-be07-31b0f4848d53","timestamp":"2025-12-05T14:46:04.916Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"a70e388b-7098-411d-a317-3757ee0f5339","timestamp":"2025-12-05T14:46:04.916Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"a95881f1-6a30-4a2b-a218-76cb4ddb8c29","timestamp":"2025-12-05T14:46:04.916Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"b65a8cc5-21c3-4d72-8553-5b3ba80d7978","timestamp":"2025-12-05T14:46:04.916Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"c75f1957-6929-45b2-9678-da67df8a682b","timestamp":"2025-12-05T14:46:04.917Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"d35cbadb-caf4-4ac1-a621-c2fe418e3d1f","timestamp":"2025-12-05T14:46:04.917Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"dd3abcd3-bed1-49f1-9044-94613981f8c8","timestamp":"2025-12-05T14:46:04.917Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"e17eb776-bbe1-4dfd-8d54-2256908d3f7a","timestamp":"2025-12-05T14:46:04.918Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"e28973f2-89cd-4b53-9c32-2bd606333d50","timestamp":"2025-12-05T14:46:04.918Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"e572c106-f86a-4043-bf0d-fe4358a37b4b","timestamp":"2025-12-05T14:46:04.918Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"e7c1ea1e-af5b-4aa8-bf44-6337ef880213","timestamp":"2025-12-05T14:46:04.918Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"f2491e24-9dce-46d8-be6b-130002fdd595","timestamp":"2025-12-05T14:46:04.919Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"f2a5435b-4204-448a-b884-f4767773a606","timestamp":"2025-12-05T14:46:04.919Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"fc3325cc-bc43-4a74-bbeb-cf307f60e5aa","timestamp":"2025-12-05T14:46:04.920Z","version":"1.0.0"}
+[32minfo[39m: Session restored {"correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","name":"Test Session","service":"strudel-mcp-server","sessionId":"fe83b9e9-52cb-429a-9df9-6ee056f1693d","timestamp":"2025-12-05T14:46:04.920Z","version":"1.0.0"}
+[WebSocket] Client disconnected: client-8
+[WebSocket] Client disconnected: client-10
+[WebSocket] Client disconnected: client-4
+[WebSocket] Client disconnected: client-13
+[WebSocket] Client disconnected: client-2
+[WebSocket] Client disconnected: client-0
+[WebSocket] Client disconnected: client-11
+[WebSocket] Client disconnected: client-9
+[WebSocket] Client disconnected: client-5
+[WebSocket] Client disconnected: client-16
+[WebSocket] Client disconnected: client-19
+[WebSocket] Client disconnected: client-7
+[WebSocket] Client disconnected: client-15
+[WebSocket] Client disconnected: client-18
+[WebSocket] Client disconnected: client-6
+[WebSocket] Client disconnected: client-1
+[WebSocket] Client disconnected: client-17
+[WebSocket] Client disconnected: client-12
+[WebSocket] Client disconnected: client-14
+[WebSocket] Client disconnected: client-3
+(pass) Concurrency Testing > WebSocket Concurrency > should handle multiple simultaneous connections [156.00ms]
+[WebSocket] Server listening on ws://localhost:8081
+[WebSocket] Client connected (id: client-0, type: test)
+[WebSocket] Client connected (id: client-1, type: test)
+[WebSocket] Client connected (id: client-2, type: test)
+[WebSocket] Client connected (id: client-3, type: test)
+[WebSocket] Client connected (id: client-4, type: test)
+[WebSocket] Client connected (id: client-5, type: test)
+[WebSocket] Client connected (id: client-6, type: test)
+[WebSocket] Client connected (id: client-7, type: test)
+[WebSocket] Client connected (id: client-8, type: test)
+[WebSocket] Client connected (id: client-9, type: test)
+[WebSocket] Client disconnected: client-0
+[WebSocket] Client disconnected: client-1
+[WebSocket] Client disconnected: client-2
+[WebSocket] Client disconnected: client-3
+[WebSocket] Client disconnected: client-4
+[WebSocket] Client disconnected: client-5
+[WebSocket] Client disconnected: client-6
+[WebSocket] Client disconnected: client-7
+[WebSocket] Client disconnected: client-8
+[WebSocket] Client disconnected: client-9
+(pass) Concurrency Testing > WebSocket Concurrency > should handle concurrent broadcasting
+[WebSocket] Server listening on ws://localhost:8081
+[WebSocket] Client connected (id: client-0, type: test)
+[WebSocket] Client connected (id: client-1, type: test)
+[WebSocket] Client connected (id: client-2, type: test)
+[WebSocket] Client connected (id: client-3, type: test)
+[WebSocket] Client connected (id: client-4, type: test)
+[WebSocket] Client disconnected: client-0
+[WebSocket] Client disconnected: client-1
+[WebSocket] Client disconnected: client-2
+[WebSocket] Client disconnected: client-3
+[WebSocket] Client disconnected: client-4
+(pass) Concurrency Testing > WebSocket Concurrency > should handle concurrent direct messaging [47.00ms]
+[WebSocket] Server listening on ws://localhost:8081
+Executing Strudel code: s("bd hh sd oh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"a9540e24-c504-47aa-a34f-fb8ef6d0effb","patternLength":16,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.112Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh").fast(2)
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"bc967e7c-f834-4458-9f45-6a9f9788eeb0","patternLength":18,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.113Z","version":"1.0.0"}
+Executing Strudel code: s("sd oh").slow(2)
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"3ddf02ca-2371-4f85-b4b5-080a8e76d7ca","patternLength":18,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.113Z","version":"1.0.0"}
+Executing Strudel code: s("bd").fast(4)
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"33a81463-98cb-4f4f-b9b4-5b52f422f7ed","patternLength":15,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.113Z","version":"1.0.0"}
+(pass) Concurrency Testing > Shared State Management > should handle concurrent pattern state updates
+[WebSocket] Server listening on ws://localhost:8081
+(pass) Concurrency Testing > Shared State Management > should handle concurrent knowledge queries
+[WebSocket] Server listening on ws://localhost:8081
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"83c8c791-9402-4f70-8bbe-fe47a500028a","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.115Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"cda358fe-f1ea-4b70-b3dd-524486bda46c","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.115Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"2c41218d-3128-488f-9515-a4514c76ff6a","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.116Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"25f4430b-fde0-433e-8c4d-aec9fd8222ef","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.116Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"ca3cb33f-ec68-4168-9f9c-90f8a7c94111","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.116Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"8d53b3ba-cd6a-4145-95db-a5e4888bb890","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.116Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"3af9dc7d-563e-4b11-956c-6e6877e4c342","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.116Z","version":"1.0.0"}
+(pass) Concurrency Testing > Shared State Management > should maintain consistency under concurrent access
+[WebSocket] Server listening on ws://localhost:8081
+[WebSocket] Client connected (id: client-0, type: test)
+[WebSocket] Client connected (id: client-1, type: test)
+[WebSocket] Client connected (id: client-2, type: test)
+[WebSocket] Client connected (id: client-3, type: test)
+[WebSocket] Client connected (id: client-4, type: test)
+[WebSocket] Client connected (id: client-5, type: test)
+[WebSocket] Client connected (id: client-6, type: test)
+[WebSocket] Client connected (id: client-7, type: test)
+[WebSocket] Client connected (id: client-8, type: test)
+[WebSocket] Client connected (id: client-9, type: test)
+[WebSocket] Client disconnected: client-0
+[WebSocket] Client disconnected: client-1
+(pass) Concurrency Testing > Resource Cleanup > should handle concurrent connection cleanup
+[WebSocket] Client disconnected: client-2
+[WebSocket] Client disconnected: client-3
+[WebSocket] Client disconnected: client-4
+[WebSocket] Client disconnected: client-5
+[WebSocket] Client disconnected: client-6
+[WebSocket] Client disconnected: client-7
+[WebSocket] Client disconnected: client-8
+[WebSocket] Client disconnected: client-9
+[WebSocket] Server listening on ws://localhost:8081
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"2952b0e4-64ea-4a93-96c4-cbf93439d10b","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.117Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"d18828c2-5720-4296-b846-7450023f11d7","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.117Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"01d9ec02-b0d9-426a-aee4-0a6e19426f0b","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"c5128cca-6d10-4efb-9ec8-cf562d1064db","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"afdd58f6-1341-4c6e-bdd9-3f1dd428bd10","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"7ca4ac0b-da1a-40ec-8202-db20887b6430","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"e1b6eb7d-80d4-40d6-8e37-d968ff9a4fad","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"4dc17e77-a05a-42fb-99e8-6f3955eae146","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"e78d9440-aed4-4499-8cb3-b0f89a459028","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"ad1c3057-c813-4331-b2c8-e177234acecf","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"b78d063a-6cee-4874-88c8-ee62761b46cc","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.118Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"0a8d1f83-459b-4317-8d4b-c325d2a0bcfe","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.119Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"d18f6c36-eed5-4ca0-a081-77a283fe7254","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.122Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"02f44ae1-df1c-4b66-8b4f-6db37601b58e","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.122Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"62e197b7-93ed-453e-bede-52e7150352bc","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.122Z","version":"1.0.0"}
+Executing Strudel code: s("bd sd")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"a40f877d-27e9-4df3-a6f8-922b235b404b","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.123Z","version":"1.0.0"}
+(pass) Concurrency Testing > Resource Cleanup > should handle resource cleanup after concurrent operations [16.00ms]
+[WebSocket] Server listening on ws://localhost:8081
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"01fbd82a-26c0-46cf-89d5-63878b21c9d6","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.123Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"9ab264c8-e453-4f2e-a022-2b28d4b4fd84","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.123Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"e33cf9e9-6ad1-40da-905a-a10176833772","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.123Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"02ff1a61-571a-48ea-825f-09234a52fc43","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.123Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"79d2fb4d-d0da-4016-bd08-2af953a7aaef","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.123Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"2f9ee903-12a0-48f4-9231-b64e358be7ef","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"1dbc3942-7688-41e7-bdf8-7d4f2c7cb8f5","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"3773c72d-9aeb-498f-8f5e-070c964e259a","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"c4c7f8bd-834e-4663-bd7c-164e6ce259fb","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"35024d42-8e91-4345-801c-8ed12964381c","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"8abfe1bd-ecc6-4d8e-a4ed-0eba736254ad","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"622e6a18-d649-4394-90a8-03f7b04e5ed4","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"648613c0-bd2d-4372-9c01-5be7adf15ee7","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"85cf4429-d405-4526-8a82-a5ed5e5eebfe","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"4fa44b5d-98f3-412c-8ef3-7dab9728db74","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"6dc37953-d12c-4aa0-bf4e-949d9e6a7d5b","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.124Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"fd3a3188-44a5-411c-984f-91066f3c50a0","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.125Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"9903254b-342f-42c0-831b-1ce1dc456b71","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.125Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"a478bd6e-dd07-4c8f-b579-ea3356c7bb4d","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.125Z","version":"1.0.0"}
+Executing Strudel code: s("bd hh")
+[32minfo[39m: Pattern added to history {"changeType":"modify","correlationId":"e4662632-a1e9-4f5e-9ccd-1e47e2721841","patternId":"88465d0e-845c-4043-99db-9216b6207bea","patternLength":10,"service":"strudel-mcp-server","timestamp":"2025-12-05T14:46:05.125Z","version":"1.0.0"}
+(pass) Concurrency Testing > Race Condition Detection > should not have race conditions in pattern updates
+[WebSocket] Server listening on ws://localhost:8081
+[WebSocket] Client connected (id: test-client, type: test)
+[WebSocket] Client disconnected: test-client
+(pass) Concurrency Testing > Race Condition Detection > should handle concurrent WebSocket message processing [62.00ms]
+
+ 12 pass
+ 1 fail
+ 478 expect() calls
+Ran 13 tests across 1 file. [493.00ms]

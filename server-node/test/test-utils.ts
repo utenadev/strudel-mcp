@@ -23,8 +23,16 @@ export class MockWebSocket extends EventEmitter {
 }
 
 export class MockServer extends EventEmitter {
+  clients = new Set()
+
   constructor() {
     super()
+  }
+
+  listen() { }
+
+  close(cb?: (err?: Error) => void) {
+    if (cb) cb()
   }
 }
 

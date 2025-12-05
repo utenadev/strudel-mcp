@@ -19,7 +19,7 @@ export interface UseStrudelReturn {
 interface Cyclist {
     start: () => void;
     stop: () => void;
-    setPattern: (code: string) => Promise<void>;
+    setPattern: (pattern: any) => Promise<void>;
 }
 
 // Initialize samples and synths
@@ -84,11 +84,6 @@ export function useStrudel(): UseStrudelReturn {
         try {
             setState(prev => ({ ...prev, error: null, currentCode: code }));
 
-            // Stop current playback
-            if (cyclistRef.current) {
-                cyclistRef.current.stop();
-            }
-
             // Dynamic imports for Strudel modules
             const [core, webaudio, transpilerModule] = await Promise.all([
                 import('@strudel/core'),
@@ -96,7 +91,7 @@ export function useStrudel(): UseStrudelReturn {
                 import('@strudel/transpiler'),
             ]);
 
-            const repl = (core as { repl: (opts: unknown) => { scheduler: Cyclist } }).repl;
+            const repl = (core as { repl: (opts: unknown) => any }).repl;
             const getAudioContext = (webaudio as { getAudioContext: () => AudioContext }).getAudioContext;
             const webaudioOutput = (webaudio as { webaudioOutput: unknown }).webaudioOutput;
             const transpiler = (transpilerModule as { transpiler: unknown }).transpiler;
@@ -108,7 +103,8 @@ export function useStrudel(): UseStrudelReturn {
             }
 
             // Create new REPL instance
-            const { scheduler } = repl({
+            // Using Strudel's repl function which returns { scheduler, evaluate, ... }
+            const { scheduler, evaluate: strudelEvaluate } = repl({
                 defaultOutput: webaudioOutput,
                 transpiler,
                 getTime: () => audioContext.currentTime,
@@ -116,9 +112,9 @@ export function useStrudel(): UseStrudelReturn {
 
             cyclistRef.current = scheduler;
 
-            // Evaluate and start
-            await scheduler.setPattern(code);
-            scheduler.start();
+            // Evaluate using Strudel's built-in evaluate function
+            // This handles transpilation, pattern evaluation, and scheduling
+            await strudelEvaluate(code);
 
             setState(prev => ({ ...prev, isPlaying: true }));
             console.log('[Strudel] Playing:', code);

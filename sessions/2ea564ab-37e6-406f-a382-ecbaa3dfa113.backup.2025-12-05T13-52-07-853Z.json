@@ -1,0 +1,43 @@
+{
+  "id": "2ea564ab-37e6-406f-a382-ecbaa3dfa113",
+  "name": "Test Session",
+  "patterns": [
+    {
+      "id": "d3119730-efd2-4f5d-9c2e-48f75a639306",
+      "name": "Pattern 1",
+      "pattern": "s('bd hh')",
+      "timestamp": "2025-12-05T13:52:07.831Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "c0925d2a-ccb4-4e7b-967b-f0dc1f8b1a10"
+        ]
+      }
+    },
+    {
+      "id": "86d04600-b7b8-4332-99de-6e78fdabd0a7",
+      "name": "Pattern 2",
+      "pattern": "s('sd oh')",
+      "timestamp": "2025-12-05T13:52:07.844Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "662ebfa0-a0fc-4d33-bd1a-0ceb674b4b84"
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "author": "test-user",
+    "tags": [
+      "test"
+    ],
+    "version": "1.0.0",
+    "duration": 0,
+    "tempo": 120,
+    "timeSignature": "4/4"
+  },
+  "createdAt": "2025-12-05T13:52:07.826Z",
+  "lastModified": "2025-12-05T13:52:07.844Z",
+  "backup": false
+}

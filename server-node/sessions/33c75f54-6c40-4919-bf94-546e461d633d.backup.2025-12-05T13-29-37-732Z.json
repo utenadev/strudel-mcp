@@ -1,0 +1,67 @@
+{
+  "id": "33c75f54-6c40-4919-bf94-546e461d633d",
+  "name": "Test Session",
+  "patterns": [
+    {
+      "id": "052a6577-f3c6-4a3c-8774-bbdff5f7b3f1",
+      "name": "Pattern 1",
+      "pattern": "s('bd hh')",
+      "timestamp": "2025-12-05T13:14:26.385Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "f8b5b41c-ac21-4684-a859-8abd1cd19c33"
+        ]
+      }
+    },
+    {
+      "id": "d43eef9f-8bad-40b6-b9e2-dbd25fec5b15",
+      "name": "Pattern 1",
+      "pattern": "s('bd hh')",
+      "timestamp": "2025-12-05T13:26:38.354Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "c961a1fb-9760-4e9e-a1e6-210a8650a3a7"
+        ]
+      }
+    },
+    {
+      "id": "3db85b52-31ec-4d43-934d-05db6a5823b6",
+      "name": "Pattern 2",
+      "pattern": "s('sd oh')",
+      "timestamp": "2025-12-05T13:29:05.161Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "af7118c1-99ad-4964-9b3d-f0d208e86527"
+        ]
+      }
+    },
+    {
+      "id": "b796cf8c-8bf2-4e09-8c17-0979173dd880",
+      "name": "Pattern 1",
+      "pattern": "s('bd hh')",
+      "timestamp": "2025-12-05T13:29:37.731Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "f02a4846-4339-4b38-ae88-0a44bf4fd7ac"
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "author": "test-user",
+    "tags": [
+      "test"
+    ],
+    "version": "1.0.0",
+    "duration": 0,
+    "tempo": 120,
+    "timeSignature": "4/4"
+  },
+  "createdAt": "2025-12-04T14:38:18.895Z",
+  "lastModified": "2025-12-05T13:29:37.731Z",
+  "backup": false
+}

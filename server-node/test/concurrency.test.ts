@@ -15,10 +15,11 @@ describe('Concurrency Testing', () => {
     knowledgeTool = new GetStrudelKnowledgeTool()
     mockServer = new MockServer()
     wsManager = new WebSocketManager(mockServer as any)
+    wsManager.start()
   })
 
-  afterEach(() => {
-    wsManager.removeAllListeners()
+  afterEach(async () => {
+    await wsManager.stop()
     mockServer.removeAllListeners()
   })
 
@@ -31,12 +32,12 @@ describe('Concurrency Testing', () => {
         's("bd").fast(4)'
       ]
 
-      const promises = concurrentCodes.map((code, index) => 
+      const promises = concurrentCodes.map((code, index) =>
         executeTool.call({ code }).then(result => ({ index, result }))
       )
 
       const results = await Promise.all(promises)
-      
+
       results.forEach(({ index, result }) => {
         expect(result).toBeDefined()
         expect(result.status).toBe('executed')
@@ -54,15 +55,15 @@ describe('Concurrency Testing', () => {
         's("sd oh").slow(2)' // valid
       ]
 
-      const promises = mixedCodes.map((code, index) => 
+      const promises = mixedCodes.map((code, index) =>
         executeTool.call({ code }).then(result => ({ index, code, result }))
       )
 
       const results = await Promise.all(promises)
-      
+
       results.forEach(({ index, code, result }) => {
         expect(result).toBeDefined()
-        
+
         if (code.includes('invalid') || code.includes('require')) {
           expect(result.status).toBe('error')
         } else {
@@ -75,17 +76,17 @@ describe('Concurrency Testing', () => {
       const rapidCode = 's("bd hh")'
       const iterations = 50
 
-      const promises = Array.from({ length: iterations }, (_, i) => 
-        executeTool.call({ code: rapidCode }).then(result => ({ 
-          iteration: i, 
-          result 
+      const promises = Array.from({ length: iterations }, (_, i) =>
+        executeTool.call({ code: rapidCode }).then(result => ({
+          iteration: i,
+          result
         }))
       )
 
       const results = await Promise.all(promises)
-      
+
       expect(results).toHaveLength(iterations)
-      
+
       results.forEach(({ iteration, result }) => {
         expect(result).toBeDefined()
         expect(result.status).toBe('executed')
@@ -103,14 +104,14 @@ describe('Concurrency Testing', () => {
       wsManager.on('connect', (ws, clientId) => {
         expect(clientId).toBeDefined()
         expect(typeof clientId).toBe('string')
-        
+
         const mockWs = ws as unknown as MockWebSocket
-        const testMessage = JSON.stringify({ 
-          type: 'test', 
-          clientId, 
-          timestamp: Date.now() 
+        const testMessage = JSON.stringify({
+          type: 'test',
+          clientId,
+          timestamp: Date.now()
         })
-        
+
         // Send message after connection
         setTimeout(() => {
           mockWs.emit('message', Buffer.from(testMessage))
@@ -121,7 +122,7 @@ describe('Concurrency Testing', () => {
         const message = JSON.parse(data)
         expect(message.clientId).toBe(clientId)
         expect(message.timestamp).toBeDefined()
-        
+
         messageCountdown--
         if (messageCountdown === 0 && connectionCountdown === 0) {
           done()
@@ -138,8 +139,8 @@ describe('Concurrency Testing', () => {
       // Create multiple simultaneous connections
       for (let i = 0; i < connectionCount; i++) {
         const mockWs = new MockWebSocket(`client-${i}`) as any
-        mockServer.emit('connection', mockWs)
-        
+        mockServer.emit('connection', mockWs, { url: `/?id=client-${i}&type=test` })
+
         // Disconnect after random delay
         setTimeout(() => {
           mockWs.close()
@@ -156,24 +157,24 @@ describe('Concurrency Testing', () => {
       for (let i = 0; i < clientCount; i++) {
         const mockWs = new MockWebSocket(`client-${i}`) as any
         clients.push(mockWs)
-        mockServer.emit('connection', mockWs)
+        mockServer.emit('connection', mockWs, { url: `/?id=client-${i}&type=test` })
       }
 
       // Send multiple concurrent broadcasts
       for (let i = 0; i < broadcastCount; i++) {
-        const message = JSON.stringify({ 
-          type: 'broadcast', 
+        const message = JSON.stringify({
+          type: 'broadcast',
           id: i,
-          timestamp: Date.now() 
+          timestamp: Date.now()
         })
-        
+
         wsManager.broadcast(message)
       }
 
       // Verify all clients received all broadcasts
       clients.forEach((client, clientIndex) => {
         expect(client.sent).toHaveLength(broadcastCount)
-        
+
         client.sent.forEach((message, messageIndex) => {
           const parsed = JSON.parse(message)
           expect(parsed.type).toBe('broadcast')
@@ -192,7 +193,7 @@ describe('Concurrency Testing', () => {
       for (let i = 0; i < clientCount; i++) {
         const mockWs = new MockWebSocket(`client-${i}`) as any
         clients.push(mockWs)
-        mockServer.emit('connection', mockWs)
+        mockServer.emit('connection', mockWs, { url: `/?id=client-${i}&type=test` })
         clientIds.push(`client-${i}`)
       }
 
@@ -200,12 +201,12 @@ describe('Concurrency Testing', () => {
       const promises = Array.from({ length: messageCount }, (_, i) => {
         return new Promise<void>((resolve) => {
           setTimeout(() => {
-            const message = JSON.stringify({ 
-              type: 'direct', 
+            const message = JSON.stringify({
+              type: 'direct',
               id: i,
-              timestamp: Date.now() 
+              timestamp: Date.now()
             })
-            
+
             // Send to random client
             const randomClientId = clientIds[Math.floor(Math.random() * clientCount)]
             wsManager.send(randomClientId, message)
@@ -219,7 +220,7 @@ describe('Concurrency Testing', () => {
         // Verify messages were sent to appropriate clients
         clients.forEach((client) => {
           expect(client.sent.length).toBeGreaterThanOrEqual(0)
-          
+
           client.sent.forEach((message) => {
             const parsed = JSON.parse(message)
             expect(parsed.type).toBe('direct')
@@ -240,7 +241,7 @@ describe('Concurrency Testing', () => {
       ]
 
       // Execute patterns concurrently
-      const executionPromises = patternCodes.map(code => 
+      const executionPromises = patternCodes.map(code =>
         executeTool.call({ code })
       )
 
@@ -255,13 +256,13 @@ describe('Concurrency Testing', () => {
 
     test('should handle concurrent knowledge queries', async () => {
       const topics = ['basics', 'patterns', 'effects', 'troubleshooting']
-      
-      const promises = topics.map(topic => 
+
+      const promises = topics.map(topic =>
         knowledgeTool.call({ topic }).then(result => ({ topic, result }))
       )
 
       const results = await Promise.all(promises)
-      
+
       results.forEach(({ topic, result }) => {
         expect(result).toBeDefined()
         expect(result.topic).toBe(topic)
@@ -288,7 +289,7 @@ describe('Concurrency Testing', () => {
 
       const promises = operations.map(op => op())
       const results = await Promise.all(promises)
-      
+
       results.forEach(result => {
         expect(result).toBeDefined()
         expect(result.timestamp).toBeDefined()
@@ -315,7 +316,7 @@ describe('Concurrency Testing', () => {
       for (let i = 0; i < connectionCount; i++) {
         const mockWs = new MockWebSocket(`client-${i}`) as any
         clients.push(mockWs)
-        mockServer.emit('connection', mockWs)
+        mockServer.emit('connection', mockWs, { url: `/?id=client-${i}&type=test` })
       }
 
       // @ts-ignore - accessing private property for testing
@@ -329,7 +330,7 @@ describe('Concurrency Testing', () => {
 
     test('should handle resource cleanup after concurrent operations', async () => {
       const operationCount = 30
-      
+
       // Perform many concurrent operations
       const promises = Array.from({ length: operationCount }, (_, i) => {
         if (i % 2 === 0) {
@@ -352,14 +353,14 @@ describe('Concurrency Testing', () => {
     test('should not have race conditions in pattern updates', async () => {
       const concurrentUpdates = 20
       const updateCode = 's("bd hh")'
-      
+
       // Perform concurrent pattern updates
-      const promises = Array.from({ length: concurrentUpdates }, () => 
+      const promises = Array.from({ length: concurrentUpdates }, () =>
         executeTool.call({ code: updateCode })
       )
 
       const results = await Promise.all(promises)
-      
+
       // All should succeed
       results.forEach(result => {
         expect(result.status).toBe('executed')
@@ -378,15 +379,15 @@ describe('Concurrency Testing', () => {
 
       wsManager.on('connect', (ws, clientId) => {
         const mockWs = ws as unknown as MockWebSocket
-        
+
         // Send multiple messages concurrently
         for (let i = 0; i < messageCount; i++) {
           setTimeout(() => {
-            const message = JSON.stringify({ 
-              type: 'test', 
+            const message = JSON.stringify({
+              type: 'test',
               id: i,
               clientId,
-              timestamp: Date.now() 
+              timestamp: Date.now()
             })
             mockWs.emit('message', Buffer.from(message))
           }, Math.random() * 50)
@@ -395,7 +396,7 @@ describe('Concurrency Testing', () => {
 
       wsManager.on('message', (ws, data, clientId) => {
         processedMessages++
-        
+
         if (processedMessages === messageCount) {
           expect(processedMessages).toBe(messageCount)
           done()
@@ -403,7 +404,7 @@ describe('Concurrency Testing', () => {
       })
 
       const mockWs = new MockWebSocket('test-client') as any
-      mockServer.emit('connection', mockWs)
+      mockServer.emit('connection', mockWs, { url: '/?id=test-client&type=test' })
     }, 10000)
   })
 })

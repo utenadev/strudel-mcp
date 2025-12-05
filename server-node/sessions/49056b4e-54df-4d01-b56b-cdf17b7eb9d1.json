@@ -1,0 +1,18 @@
+{
+  "id": "49056b4e-54df-4d01-b56b-cdf17b7eb9d1",
+  "name": "Test Session",
+  "patterns": [],
+  "metadata": {
+    "author": "test-user",
+    "tags": [
+      "test"
+    ],
+    "version": "1.0.0",
+    "duration": 0,
+    "tempo": 120,
+    "timeSignature": "4/4"
+  },
+  "createdAt": "2025-12-05T13:43:56.157Z",
+  "lastModified": "2025-12-05T13:43:56.157Z",
+  "backup": false
+}

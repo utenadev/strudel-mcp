@@ -1,0 +1,55 @@
+{
+  "id": "26a650ce-11a2-4c06-a51e-880921318259",
+  "name": "Test Session",
+  "patterns": [
+    {
+      "id": "f8f5dab5-25d2-46c4-8f9c-706946fc60a6",
+      "name": "Pattern 1",
+      "pattern": "s('bd hh')",
+      "timestamp": "2025-12-05T13:14:26.413Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "19d2c8c7-55b1-4a72-9252-6c8bacfa70e1"
+        ]
+      }
+    },
+    {
+      "id": "517df002-2903-4f00-9c5f-e1bdbc1d9294",
+      "name": "Pattern 1",
+      "pattern": "s('bd hh')",
+      "timestamp": "2025-12-05T13:26:38.382Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "979e44d4-92ef-4aeb-a411-57c5719aad16"
+        ]
+      }
+    },
+    {
+      "id": "05a5aa2d-b5ab-4d72-b618-dee49cbeed3f",
+      "name": "Pattern 1",
+      "pattern": "s('bd hh')",
+      "timestamp": "2025-12-05T13:29:37.742Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "4a55c5af-cd87-43c7-a4b1-b72187baab7c"
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "author": "test-user",
+    "tags": [
+      "test"
+    ],
+    "version": "1.0.0",
+    "duration": 0,
+    "tempo": 120,
+    "timeSignature": "4/4"
+  },
+  "createdAt": "2025-12-04T14:38:37.942Z",
+  "lastModified": "2025-12-05T13:29:37.742Z",
+  "backup": false
+}

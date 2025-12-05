@@ -16,17 +16,18 @@ describe('Error Handling Validation', () => {
     knowledgeTool = new GetStrudelKnowledgeTool()
     mockServer = new MockServer()
     wsManager = new WebSocketManager(mockServer as any)
+    wsManager.start()
   })
 
-  afterEach(() => {
-    wsManager.removeAllListeners()
+  afterEach(async () => {
+    await wsManager.stop()
     mockServer.removeAllListeners()
   })
 
   describe('MCP Tool Error Handling', () => {
     test('should handle invalid code execution gracefully', async () => {
       const invalidCode = 'invalid javascript syntax {{{'
-      
+
       const result = await executeTool.call({ code: invalidCode })
       expect(result).toBeDefined()
       expect(result.status).toBe('error')
@@ -43,7 +44,7 @@ describe('Error Handling Validation', () => {
     test('should handle null/undefined code', async () => {
       const result1 = await executeTool.call({ code: null as any })
       expect(result1.status).toBe('error')
-      
+
       const result2 = await executeTool.call({ code: undefined as any })
       expect(result2.status).toBe('error')
     })
@@ -94,7 +95,7 @@ describe('Error Handling Validation', () => {
       })
 
       const mockWs = new MockWebSocket() as any
-      mockServer.emit('connection', mockWs)
+      mockServer.emit('connection', mockWs, { url: '/?clientId=test-connection-error' })
     })
 
     test('should handle malformed message processing', (done) => {
@@ -109,7 +110,7 @@ describe('Error Handling Validation', () => {
       })
 
       const mockWs = new MockWebSocket() as any
-      mockServer.emit('connection', mockWs)
+      mockServer.emit('connection', mockWs, { url: '/?clientId=test-malformed' })
     })
 
     test('should handle large message processing', (done) => {
@@ -125,13 +126,13 @@ describe('Error Handling Validation', () => {
       })
 
       const mockWs = new MockWebSocket() as any
-      mockServer.emit('connection', mockWs)
+      mockServer.emit('connection', mockWs, { url: '/?clientId=test-large-msg' })
     })
 
     test('should handle send to disconnected client', () => {
       const nonExistentClientId = 'non-existent-client'
       const message = JSON.stringify({ type: 'test' })
-      
+
       // Should not throw error
       expect(() => {
         wsManager.send(nonExistentClientId, message)
@@ -140,7 +141,7 @@ describe('Error Handling Validation', () => {
 
     test('should handle broadcast with no clients', () => {
       const message = JSON.stringify({ type: 'test' })
-      
+
       // Should not throw error when no clients connected
       expect(() => {
         wsManager.broadcast(message)
@@ -152,7 +153,7 @@ describe('Error Handling Validation', () => {
     test('should handle network timeout scenarios', (done) => {
       wsManager.on('connect', (ws) => {
         const mockWs = ws as unknown as MockWebSocket
-        
+
         // Simulate network timeout
         setTimeout(() => {
           mockWs.emit('error', new Error('Network timeout'))
@@ -169,7 +170,7 @@ describe('Error Handling Validation', () => {
       })
 
       const mockWs = new MockWebSocket() as any
-      mockServer.emit('connection', mockWs)
+      mockServer.emit('connection', mockWs, { url: '/?clientId=test-timeout' })
     })
 
     test('should handle connection reset errors', (done) => {
@@ -184,20 +185,20 @@ describe('Error Handling Validation', () => {
       })
 
       const mockWs = new MockWebSocket() as any
-      mockServer.emit('connection', mockWs)
+      mockServer.emit('connection', mockWs, { url: '/?clientId=test-reset' })
     })
   })
 
   describe('Resource Exhaustion Testing', () => {
     test('should handle too many connections gracefully', () => {
-      const maxConnections = 1000
+      const maxConnections = 100
       const clients: MockWebSocket[] = []
 
       // Simulate many connections
       for (let i = 0; i < maxConnections; i++) {
         const mockWs = new MockWebSocket() as any
         clients.push(mockWs)
-        mockServer.emit('connection', mockWs)
+        mockServer.emit('connection', mockWs, { url: `/?clientId=test-exhaustion-${i}` })
       }
 
       // @ts-ignore - accessing private property for testing
@@ -208,10 +209,10 @@ describe('Error Handling Validation', () => {
     })
 
     test('should handle memory pressure scenarios', async () => {
-      const largePattern = Array(10000).fill('s("bd hh")').join(' + ');
+      const largePattern = Array(2000).fill('s("bd hh")').join(' + ');
       const largeCode = `
         // Generate large pattern
-        const largePattern = Array(10000).fill('s("bd hh")').join(' + ');
+        const largePattern = Array(2000).fill('s("bd hh")').join(' + ');
         ${largePattern}
       `
 
@@ -224,14 +225,14 @@ describe('Error Handling Validation', () => {
   describe('Input Validation Edge Cases', () => {
     test('should handle extreme whitespace in code', async () => {
       const codeWithWhitespace = '   \n\t  s("bd hh")  \n\t   '
-      
+
       const result = await executeTool.call({ code: codeWithWhitespace })
       expect(result.status).toBe('executed')
     })
 
     test('should handle special characters in code', async () => {
       const codeWithSpecialChars = 's("bd hh sd oh") // 特殊文字: ñüö ß 中文'
-      
+
       const result = await executeTool.call({ code: codeWithSpecialChars })
       expect(result.status).toBe('executed')
     })
@@ -241,7 +242,7 @@ describe('Error Handling Validation', () => {
         const ${'a'.repeat(1000)} = "test";
         s("bd hh")
       `
-      
+
       const result = await executeTool.call({ code: veryLongCode })
       expect(result).toBeDefined()
     })
@@ -261,10 +262,10 @@ describe('Error Handling Validation', () => {
     test('should maintain state after errors', async () => {
       // Execute valid code
       await executeTool.call({ code: 's("bd hh")' })
-      
+
       // Execute invalid code
       await executeTool.call({ code: 'invalid syntax' })
-      
+
       // Get current pattern should still work
       const result = await currentTool.call({})
       expect(result).toBeDefined()

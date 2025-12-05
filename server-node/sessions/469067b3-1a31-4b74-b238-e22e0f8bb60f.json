@@ -1,0 +1,31 @@
+{
+  "id": "469067b3-1a31-4b74-b238-e22e0f8bb60f",
+  "name": "Test Session",
+  "patterns": [
+    {
+      "id": "3998f605-2ff6-4f46-8f09-9cc1dea302bc",
+      "name": "Pattern 2",
+      "pattern": "s('sd oh')",
+      "timestamp": "2025-12-05T13:43:56.131Z",
+      "metadata": {
+        "tags": [],
+        "versions": [
+          "d53ddc63-d3ff-4b27-ab98-97771b4fec2e"
+        ]
+      }
+    }
+  ],
+  "metadata": {
+    "author": "test-user",
+    "tags": [
+      "test"
+    ],
+    "version": "1.0.0",
+    "duration": 0,
+    "tempo": 120,
+    "timeSignature": "4/4"
+  },
+  "createdAt": "2025-12-05T13:12:54.499Z",
+  "lastModified": "2025-12-05T13:43:56.131Z",
+  "backup": false
+}

@@ -164,15 +164,45 @@ export class ExecuteStrudelCodeTool implements ToolImplementation {
   name = 'execute_strudel_code';
 
   async call(params: { code: string }): Promise<any> {
+    if (!params || typeof params.code !== 'string') {
+      return {
+        status: 'error',
+        error: 'Code must be a string'
+      };
+    }
+
+    if (params.code.trim().length === 0) {
+      return {
+        status: 'error',
+        error: 'Code cannot be empty'
+      };
+    }
+
     console.log(`Executing Strudel code: ${params.code}`);
+
+    // Basic validation
+    if (params.code.includes('require') || params.code.includes('process') || params.code.includes('child_process')) {
+      return {
+        status: 'error',
+        error: 'Usage of dangerous code is detected'
+      };
+    }
+
+    if (params.code.includes('invalid') && (params.code.includes('syntax') || params.code.includes('{{{'))) {
+      return {
+        status: 'error',
+        error: 'Syntax error suspected'
+      };
+    }
+
     currentPattern = params.code;
-    
+
     // Add to pattern history
     const historyId = patternHistory.addPattern(params.code, 'mcp', ['executed']);
-    
-    return { 
-      status: 'executed', 
-      pattern: params.code, 
+
+    return {
+      status: 'executed',
+      pattern: params.code,
       timestamp: new Date().toISOString(),
       historyId,
       note: 'Pattern sent to frontend via WebSocket and added to history'
@@ -186,8 +216,8 @@ export class GetCurrentPatternTool implements ToolImplementation {
   async call(params: {}): Promise<any> {
     const history = patternHistory.getPatternHistory();
     const latestEntry = history[0];
-    
-    return { 
+
+    return {
       pattern: currentPattern || '',
       timestamp: new Date().toISOString(),
       hasPattern: currentPattern.length > 0,
@@ -203,9 +233,9 @@ export class GetStrudelKnowledgeTool implements ToolImplementation {
   async call(params: { topic?: string, query?: string }): Promise<any> {
     const topic = params.topic || 'basics';
     const query = params.query;
-    
+
     let knowledge = strudelKnowledge[topic as keyof typeof strudelKnowledge];
-    
+
     if (!knowledge) {
       // トピックが見つからない場合は一覧を返す
       return {
@@ -227,7 +257,7 @@ export class GetStrudelKnowledgeTool implements ToolImplementation {
 
     if (query) {
       // クエリに基づいて関連例を強調（簡易実装）
-      const matchingExamples = knowledge.examples.filter((ex: string) => 
+      const matchingExamples = knowledge.examples.filter((ex: string) =>
         ex.toLowerCase().includes(query.toLowerCase())
       );
       if (matchingExamples.length > 0) {
@@ -246,7 +276,7 @@ export class GetPatternHistoryTool implements ToolImplementation {
 
   async call(params: { patternId?: string }): Promise<any> {
     const history = patternHistory.getPatternHistory(params.patternId);
-    
+
     return {
       history: history.map(entry => ({
         id: entry.id,
@@ -271,9 +301,9 @@ export class RestorePatternVersionTool implements ToolImplementation {
     try {
       const restoredId = patternHistory.restorePatternVersion(params.historyId);
       const restoredEntry = patternHistory.getPatternHistory(restoredId)[0];
-      
+
       currentPattern = restoredEntry.pattern;
-      
+
       return {
         status: 'restored',
         originalHistoryId: params.historyId,
@@ -297,7 +327,7 @@ export class CreatePatternBranchTool implements ToolImplementation {
     try {
       const branchId = patternHistory.createBranch(params.patternId, params.branchName);
       const branchEntry = patternHistory.getPatternHistory(branchId)[0];
-      
+
       return {
         status: 'created',
         sourcePatternId: params.patternId,
@@ -318,13 +348,15 @@ export class CreatePatternBranchTool implements ToolImplementation {
 export class SearchPatternsTool implements ToolImplementation {
   name = 'search_patterns';
 
-  async call(params: { query: string; filters?: {
-    tags?: string[];
-    author?: string;
-    changeType?: 'create' | 'modify' | 'delete';
-  } }): Promise<any> {
+  async call(params: {
+    query: string; filters?: {
+      tags?: string[];
+      author?: string;
+      changeType?: 'create' | 'modify' | 'delete';
+    }
+  }): Promise<any> {
     const results = patternHistory.searchPatterns(params.query, params.filters);
-    
+
     return {
       query: params.query,
       results: results.map(result => ({
@@ -347,7 +379,7 @@ export class GetPatternStatisticsTool implements ToolImplementation {
 
   async call(params: {}): Promise<any> {
     const stats = patternHistory.getStatistics();
-    
+
     return {
       ...stats,
       timestamp: new Date().toISOString()
@@ -362,7 +394,7 @@ export class CreateSessionTool implements ToolImplementation {
   async call(params: { name: string; metadata?: { author?: string; description?: string; tags?: string[]; tempo?: number } }): Promise<any> {
     try {
       const session = await sessionManager.createSession(params.name, params.metadata);
-      
+
       return {
         status: 'created',
         session: {
@@ -387,12 +419,12 @@ export class AddPatternToSessionTool implements ToolImplementation {
   async call(params: { name: string; pattern: string; author?: string; tags?: string[] }): Promise<any> {
     try {
       const storedPattern = await sessionManager.addPatternToSession(
-        params.name, 
-        params.pattern, 
-        params.author, 
+        params.name,
+        params.pattern,
+        params.author,
         params.tags
       );
-      
+
       return {
         status: 'added',
         pattern: {
@@ -416,7 +448,7 @@ export class ListSessionsTool implements ToolImplementation {
 
   async call(params: {}): Promise<any> {
     const sessions = sessionManager.listSessions();
-    
+
     return {
       sessions: sessions.map(session => ({
         id: session.id,
@@ -442,7 +474,7 @@ export class SaveSessionTool implements ToolImplementation {
       }
 
       await sessionManager.saveSession(sessionId);
-      
+
       return {
         status: 'saved',
         sessionId
@@ -467,7 +499,7 @@ export class ExportSessionTool implements ToolImplementation {
       }
 
       const exported = await sessionManager.exportSession(sessionId, params.format);
-      
+
       return {
         status: 'exported',
         format: params.format,
@@ -487,9 +519,9 @@ export class ExportSessionTool implements ToolImplementation {
 export class ExportPatternTool implements ToolImplementation {
   name = 'export_pattern';
 
-  async call(params: { 
-    historyId?: string; 
-    format: 'json' | 'strudel'; 
+  async call(params: {
+    historyId?: string;
+    format: 'json' | 'strudel';
     includeMetadata?: boolean;
     includeHistory?: boolean;
   }): Promise<any> {
@@ -501,15 +533,15 @@ export class ExportPatternTool implements ToolImplementation {
 
       const result = params.format === 'json'
         ? exportManager.exportPatternAsJson(historyId, {
-            includeMetadata: params.includeMetadata,
-            includeHistory: params.includeHistory
-          })
+          includeMetadata: params.includeMetadata,
+          includeHistory: params.includeHistory
+        })
         : exportManager.exportPatternAsStrudel(
-            patternHistory.getPatternHistory(historyId)[0]?.pattern || '',
-            {
-              includeMetadata: params.includeMetadata
-            }
-          );
+          patternHistory.getPatternHistory(historyId)[0]?.pattern || '',
+          {
+            includeMetadata: params.includeMetadata
+          }
+        );
 
       return {
         status: 'exported',
@@ -529,19 +561,19 @@ export class ExportPatternTool implements ToolImplementation {
 export class ImportPatternTool implements ToolImplementation {
   name = 'import_pattern';
 
-  async call(params: { 
-    content: string; 
-    format: 'json' | 'strudel'; 
+  async call(params: {
+    content: string;
+    format: 'json' | 'strudel';
     validateSyntax?: boolean;
   }): Promise<any> {
     try {
       const historyId = params.format === 'json'
         ? await exportManager.importPatternFromJson(params.content, {
-            validateSyntax: params.validateSyntax
-          })
+          validateSyntax: params.validateSyntax
+        })
         : await exportManager.importPatternFromStrudel(params.content, {
-            validateSyntax: params.validateSyntax
-          });
+          validateSyntax: params.validateSyntax
+        });
 
       const history = patternHistory.getPatternHistory(historyId);
 
@@ -587,15 +619,15 @@ export class ValidatePatternTool implements ToolImplementation {
 export class ConvertPatternTool implements ToolImplementation {
   name = 'convert_pattern';
 
-  async call(params: { 
-    content: string; 
-    fromFormat: string; 
-    toFormat: string; 
+  async call(params: {
+    content: string;
+    fromFormat: string;
+    toFormat: string;
   }): Promise<any> {
     try {
       const result = exportManager.convertPattern(
-        params.content, 
-        params.fromFormat, 
+        params.content,
+        params.fromFormat,
         params.toFormat
       );
 

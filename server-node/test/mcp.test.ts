@@ -45,9 +45,9 @@ describe('MCP Tools', () => {
   })
 
   test('should filter knowledge by query', async () => {
-    const result = await knowledgeTool.call({ 
-      topic: 'basics', 
-      query: 'bd' 
+    const result = await knowledgeTool.call({
+      topic: 'basics',
+      query: 'bd'
     })
     // "bd" が examples に含まれているか確認
     expect(result.queryMatch).toBeDefined()
