@@ -66,29 +66,29 @@ export const clearCorrelationId = () => {
 // Enhanced logging methods
 export const structuredLogger = {
   info: (message: string, meta?: any) => {
-    logger.info(message, {
+    winstonLogger.info(message, {
       ...meta,
       correlationId: currentCorrelationId || generateCorrelationId()
     })
   },
-  
+
   error: (message: string, error?: any, meta?: any) => {
-    logger.error(message, {
+    winstonLogger.error(message, {
       ...meta,
       error: error?.stack || error,
       correlationId: currentCorrelationId || generateCorrelationId()
     })
   },
-  
+
   warn: (message: string, meta?: any) => {
-    logger.warn(message, {
+    winstonLogger.warn(message, {
       ...meta,
       correlationId: currentCorrelationId || generateCorrelationId()
     })
   },
-  
+
   debug: (message: string, meta?: any) => {
-    logger.debug(message, {
+    winstonLogger.debug(message, {
       ...meta,
       correlationId: currentCorrelationId || generateCorrelationId()
     })
@@ -96,7 +96,7 @@ export const structuredLogger = {
 
   // Performance logging
   performance: (operation: string, duration: number, meta?: any) => {
-    logger.info(`Performance: ${operation}`, {
+    winstonLogger.info(`Performance: ${operation}`, {
       operation,
       duration,
       ...meta,
@@ -106,7 +106,7 @@ export const structuredLogger = {
 
   // Security logging
   security: (event: string, details?: any) => {
-    logger.warn(`Security Event: ${event}`, {
+    winstonLogger.warn(`Security Event: ${event}`, {
       event,
       ...details,
       correlationId: currentCorrelationId || generateCorrelationId(),
@@ -116,7 +116,7 @@ export const structuredLogger = {
 
   // Business logging
   business: (event: string, details?: any) => {
-    logger.info(`Business Event: ${event}`, {
+    winstonLogger.info(`Business Event: ${event}`, {
       event,
       ...details,
       correlationId: currentCorrelationId || generateCorrelationId(),

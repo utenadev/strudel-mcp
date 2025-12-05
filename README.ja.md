@@ -30,8 +30,10 @@ Strudel MCPは、Large Language Models (LLM) が [Strudel](https://strudel.cc/) 
 ## クイックスタート
 
 ### 必須要件
-- Node.js (>=18) または Bun (>=1.0)
+- **Bun (>=1.0)** - 推奨ランタイム
 - WebSocket/Web Audio API対応ブラウザ
+
+> **注意**: このプロジェクトはBunを使用することを推奨します。Node.jsでも動作しますが、パフォーマンスと開発体験の観点からBunの使用を強く推奨します。
 
 ### インストール
 
@@ -42,12 +44,12 @@ cd strudel-mcp
 
 # サーバー依存関係をインストール
 cd server-node
-bun install  # または npm install
+bun install
 cd ..
 
 # フロントエンド依存関係をインストール
 cd frontend
-bun install  # または npm install
+bun install
 cd ..
 ```
 
@@ -120,6 +122,7 @@ strudel-mcp/
 
 ## 技術スタック
 
+- **ランタイム**: Bun (推奨)
 - **バックエンド**: TypeScript + Express + @modelcontextprotocol/sdk
 - **フロントエンド**: React + TypeScript + Vite
 - **オーディオ**: Strudelパッケージ (@strudel/core, @strudel/webaudio, @strudel/transpiler)
@@ -143,19 +146,21 @@ strudel-mcp/
 }
 ```
 
-### Claude Desktop / Qwen
+### Claude Desktop / Qwen (Node.js使用時)
 
 ```json
 {
   "mcpServers": {
     "strudel-mcp": {
-      "command": "node",
-      "args": ["/path/to/strudel-mcp/server-node/dist/index.js"],
+      "command": "bun",
+      "args": ["run", "dist/index.js"],
       "cwd": "/path/to/strudel-mcp/server-node"
     }
   }
 }
 ```
+
+> **推奨**: Bunを使用することで起動時間が短縮され、メモリ使用量も削減されます。
 
 ## トラブルシューティング
 

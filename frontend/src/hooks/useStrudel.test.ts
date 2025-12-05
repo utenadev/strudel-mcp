@@ -10,6 +10,7 @@ vi.mock('@strudel/core', () => ({
             stop: vi.fn(),
             setPattern: vi.fn().mockResolvedValue(undefined),
         },
+        evaluate: vi.fn().mockResolvedValue(undefined),
     })),
 }));
 

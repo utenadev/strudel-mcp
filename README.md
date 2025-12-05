@@ -66,8 +66,10 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
 ## Quick Start
 
 ### Prerequisites
-- Node.js (>=18) or Bun (>=1.0)
+- **Bun (>=1.0)** - Recommended runtime
 - Modern browser with WebSocket and Web Audio API support
+
+> **Note**: This project is optimized for Bun. While it works with Node.js, we strongly recommend using Bun for better performance and developer experience.
 
 ### Installation
 
@@ -80,14 +82,14 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
 2. **Install server dependencies**:
    ```bash
    cd server-node
-   bun install  # or npm install
+   bun install
    cd ..
    ```
 
 3. **Install frontend dependencies**:
    ```bash
    cd frontend
-   bun install  # or npm install
+   bun install
    cd ..
    ```
 
@@ -95,11 +97,11 @@ This project follows the AGPL-3.0 license, consistent with the original Strudel 
    ```bash
    # Terminal 1: Start MCP + WebSocket server
    cd server-node
-   bun run dev  # or npm run dev
+   bun run dev
    
    # Terminal 2: Start frontend
    cd frontend
-   bun run dev  # or npm run dev
+   bun run dev
    ```
 
 5. **Run tests**:
@@ -248,6 +250,7 @@ strudel-mcp/
 ```
 
 ### Key Technologies
+- **Runtime**: Bun (recommended)
 - **Backend**: TypeScript + Express + @modelcontextprotocol/sdk
 - **Frontend**: React + TypeScript + Vite
 - **Audio**: Strudel packages (@strudel/core, @strudel/webaudio, @strudel/transpiler)
