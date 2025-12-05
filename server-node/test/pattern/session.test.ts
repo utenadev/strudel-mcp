@@ -64,7 +64,7 @@ describe('SessionManager', () => {
 
     it('should save session to storage', async () => {
       const session = await sessionManager.createSession('Test Session');
-      
+
       // Check if file was created
       const sessionFiles = await fs.readdir(testStoragePath);
       expect(sessionFiles).toContain(`${session.id}.json`);
@@ -73,7 +73,7 @@ describe('SessionManager', () => {
       const filePath = path.join(testStoragePath, `${session.id}.json`);
       const fileContent = await fs.readFile(filePath, 'utf-8');
       const savedSession = JSON.parse(fileContent);
-      
+
       expect(savedSession.name).toBe('Test Session');
       expect(savedSession.id).toBe(session.id);
     });
@@ -83,7 +83,7 @@ describe('SessionManager', () => {
     it('should add a pattern to the current session', async () => {
       const session = await sessionManager.createSession('Test Session');
       const pattern = "s('bd hh sd oh')";
-      
+
       const storedPattern = await sessionManager.addPatternToSession('Test Pattern', pattern, 'test-user', ['drums']);
 
       expect(storedPattern.name).toBe('Test Pattern');
@@ -99,9 +99,7 @@ describe('SessionManager', () => {
     });
 
     it('should throw error when no active session', async () => {
-      expect(async () => {
-        await sessionManager.addPatternToSession('Test', "s('bd')");
-      }).rejects.toThrow('No active session');
+      await expect(sessionManager.addPatternToSession('Test', "s('bd')")).rejects.toThrow('No active session');
     });
   });
 
@@ -109,11 +107,11 @@ describe('SessionManager', () => {
     it('should update an existing pattern', async () => {
       const session = await sessionManager.createSession('Test Session');
       const pattern = await sessionManager.addPatternToSession('Pattern', "s('bd hh')");
-      
+
       const updatedPattern = await sessionManager.updatePatternInSession(
-        pattern.id, 
-        "s('bd hh sd oh')", 
-        'test-user', 
+        pattern.id,
+        "s('bd hh sd oh')",
+        'test-user',
         ['drums', 'full']
       );
 
@@ -124,10 +122,8 @@ describe('SessionManager', () => {
 
     it('should throw error for non-existent pattern', async () => {
       await sessionManager.createSession('Test Session');
-      
-      expect(async () => {
-        await sessionManager.updatePatternInSession('non-existent', "s('bd')");
-      }).rejects.toThrow('Pattern non-existent not found in session');
+
+      await expect(sessionManager.updatePatternInSession('non-existent', "s('bd')")).rejects.toThrow('Pattern non-existent not found in session');
     });
   });
 
@@ -153,9 +149,7 @@ describe('SessionManager', () => {
     });
 
     it('should throw error for non-existent session', async () => {
-      expect(async () => {
-        await sessionManager.restoreSession('non-existent');
-      }).rejects.toThrow('Failed to restore session non-existent');
+      await expect(sessionManager.restoreSession('non-existent')).rejects.toThrow('Failed to restore session non-existent');
     });
   });
 
@@ -163,11 +157,11 @@ describe('SessionManager', () => {
     it('should list all sessions sorted by last modified', async () => {
       const session1 = await sessionManager.createSession('Session 1');
       await new Promise(resolve => setTimeout(resolve, 10)); // Small delay
-      
+
       const session2 = await sessionManager.createSession('Session 2');
-      
+
       const sessions = sessionManager.listSessions();
-      
+
       expect(sessions).toHaveLength(2);
       expect(sessions[0].name).toBe('Session 2'); // Most recently modified first
       expect(sessions[1].name).toBe('Session 1');
@@ -178,11 +172,11 @@ describe('SessionManager', () => {
     it('should switch to a different session', async () => {
       const session1 = await sessionManager.createSession('Session 1');
       const session2 = await sessionManager.createSession('Session 2');
-      
+
       expect(sessionManager.getCurrentSession()?.id).toBe(session2.id);
-      
+
       const switchedSession = sessionManager.switchSession(session1.id);
-      
+
       expect(switchedSession.id).toBe(session1.id);
       expect(sessionManager.getCurrentSession()?.id).toBe(session1.id);
     });
@@ -198,11 +192,11 @@ describe('SessionManager', () => {
     it('should delete a session and its file', async () => {
       const session = await sessionManager.createSession('Test Session');
       await sessionManager.addPatternToSession('Pattern', "s('bd')");
-      
+
       await sessionManager.deleteSession(session.id);
 
       expect(sessionManager.sessions.has(session.id)).toBe(false);
-      
+
       const sessionFiles = await fs.readdir(testStoragePath);
       expect(sessionFiles).not.toContain(`${session.id}.json`);
     });
@@ -210,9 +204,9 @@ describe('SessionManager', () => {
     it('should handle deletion of current session', async () => {
       const session1 = await sessionManager.createSession('Session 1');
       const session2 = await sessionManager.createSession('Session 2');
-      
+
       await sessionManager.deleteSession(session2.id);
-      
+
       expect(sessionManager.getCurrentSession()?.id).toBe(session1.id);
     });
   });
@@ -288,9 +282,7 @@ describe('SessionManager', () => {
     });
 
     it('should handle malformed JSON', async () => {
-      expect(async () => {
-        await sessionManager.importSession('invalid json', 'json');
-      }).rejects.toThrow('Failed to import JSON session');
+      await expect(sessionManager.importSession('invalid json', 'json')).rejects.toThrow('Failed to import JSON session');
     });
   });
 
@@ -304,7 +296,7 @@ describe('SessionManager', () => {
 
       const files = await fs.readdir(testStoragePath);
       const backupFiles = files.filter(file => file.includes('.backup.'));
-      
+
       expect(backupFiles.length).toBeGreaterThan(0);
     });
   });
